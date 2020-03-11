@@ -1,5 +1,3 @@
----
----
 # Ideas to Include in a new Programming Language
 Focus is on programmer ergonomics. Should be as easy to use as python and as fast
 as Java.
