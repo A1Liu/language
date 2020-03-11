@@ -3,10 +3,21 @@
 
 int main() {
   std::string s = R"(
+
+   
+
 def hi():
   def hi():
     return None
+
+  
+
+  def hi():
+    return None
   return None
+
+    
+
 )";
 
   Lexer l{std::move(s)};

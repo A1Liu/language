@@ -37,7 +37,7 @@ struct Lexer {
   std::string running_string;
   std::vector<int> indentation_stack;
   uint32_t index = 0;
-  uint16_t state = LexerState::NORMAL;
+  uint16_t state = LexerState::INDENTATION;
   uint16_t indentation_count = 0;
 
   explicit Lexer(std::string &&data);

@@ -47,6 +47,7 @@ void Lexer::next_tok_indent(Token &tok) {
       if (!handle_newline(tok)) {
         return;
       }
+      indentation_level = 0;
       break;
     case ' ':
       indentation_level += 1;
