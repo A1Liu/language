@@ -1,6 +1,55 @@
 #include "lexer.h"
 #include <iostream>
 
+struct Escaped {
+  const std::string_view str;
+
+  Escaped(std::string_view &_str) : str(_str) {}
+
+  friend inline std::ostream &operator<<(std::ostream &os, const Escaped &e) {
+    for (const char *char_p = e.str.data(); *char_p != '\0'; char_p++) {
+      switch (*char_p) {
+      case '\a':
+        os << "\\a";
+        break;
+      case '\b':
+        os << "\\b";
+        break;
+      case '\f':
+        os << "\\f";
+        break;
+      case '\n':
+        os << "\\n";
+        break;
+      case '\r':
+        os << "\\r";
+        break;
+      case '\t':
+        os << "\\t";
+        break;
+      case '\v':
+        os << "\\v";
+        break;
+      case '\\':
+        os << "\\\\";
+        break;
+      case '\'':
+        os << "\\'";
+        break;
+      case '\"':
+        os << "\\\"";
+        break;
+      case '\?':
+        os << "\\\?";
+        break;
+      default:
+        os << *char_p;
+      }
+    }
+    return os;
+  }
+};
+
 Lexer::Lexer(std::string &&_data) : data(_data) {
   indentation_stack.push_back(0);
 }
@@ -114,7 +163,7 @@ void Lexer::next_tok_normal(Token &tok) {
     tok.end = ++index;
     tok.data = nullptr;
     if (index == data.size()) {
-      state == LexerState::END;
+      state = LexerState::END;
     }
   };
 
