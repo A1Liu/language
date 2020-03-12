@@ -1,5 +1,5 @@
 #include "lexer.h"
-#include <iostream>
+#include <ostream>
 
 struct Escaped {
   const std::string_view str;
@@ -58,7 +58,7 @@ bool Lexer::has_next() {
   return state != LexerState::END || indentation_count > 0;
 }
 
-Lexer::Token Lexer::next() {
+Token Lexer::next() {
   Token tok;
   next(tok);
   return tok;
@@ -192,7 +192,7 @@ void Lexer::next_tok_normal(Token &tok) {
   case '7':
   case '8':
   case '9':
-    std::cerr << "got a number" << std::endl;
+    throw 0;
   default: // It's some kind of keyword or identifier
     break;
   }
@@ -240,50 +240,56 @@ bool Lexer::handle_newline(Token &tok) {
   return true;
 }
 
-std::ostream &operator<<(std::ostream &os, const Lexer::Token &token) {
+std::ostream &operator<<(std::ostream &os, const Token &token) {
   os << "type: " << token.type << " view: `" << Escaped(token.view) << '`';
   return os;
 }
 
-std::ostream &operator<<(std::ostream &os, const Lexer::TokenType &type) {
+bool Token::operator==(const Token &rhs) const {
+  return type == rhs.type && data == rhs.data && view == rhs.view;
+}
+
+bool Token::operator!=(const Token &rhs) const { return !(rhs == *this); }
+
+std::ostream &operator<<(std::ostream &os, const TokenType &type) {
   switch (type) {
-  case Lexer::TokenType::DEF:
+  case TokenType::DEF:
     os << "DEF";
     break;
-  case Lexer::TokenType::IDENT:
+  case TokenType::IDENT:
     os << "IDENT";
     break;
-  case Lexer::TokenType::LPAREN:
+  case TokenType::LPAREN:
     os << "LPAREN";
     break;
-  case Lexer::TokenType::RPAREN:
+  case TokenType::RPAREN:
     os << "RPAREN";
     break;
-  case Lexer::TokenType::COLON:
+  case TokenType::COLON:
     os << "COLON";
     break;
-  case Lexer::TokenType::RETURN:
+  case TokenType::RETURN:
     os << "RETURN";
     break;
-  case Lexer::TokenType::NONE:
+  case TokenType::NONE:
     os << "NONE";
     break;
-  case Lexer::TokenType::NEWLINE:
+  case TokenType::NEWLINE:
     os << "NEWLINE";
     break;
-  case Lexer::TokenType::INDENT:
+  case TokenType::INDENT:
     os << "INDENT";
     break;
-  case Lexer::TokenType::DEDENT:
+  case TokenType::DEDENT:
     os << "DEDENT";
     break;
-  case Lexer::TokenType::UNKNOWN_DEDENT:
+  case TokenType::UNKNOWN_DEDENT:
     os << "UNKNOWN_DEDENT";
     break;
-  case Lexer::TokenType::UNKNOWN:
+  case TokenType::UNKNOWN:
     os << "UNKNOWN";
     break;
-  case Lexer::TokenType::END:
+  case TokenType::END:
     os << "END";
     break;
   }

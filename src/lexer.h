@@ -1,36 +1,42 @@
+#pragma once
 #include <cstdint>
 #include <ostream>
 #include <stdbool.h>
 #include <string>
 #include <vector>
 
+enum class TokenType {
+  DEF,
+  IDENT,
+  LPAREN,
+  RPAREN,
+  COLON,
+  RETURN,
+  NONE,
+  NEWLINE,
+  INDENT,
+  DEDENT,
+  UNKNOWN_DEDENT,
+  UNKNOWN,
+  END
+};
+
+enum LexerState { NORMAL, INDENTATION, DEDENT, END };
+
+struct Token {
+
+  friend std::ostream &operator<<(std::ostream &os, const Token &token);
+
+  TokenType type;
+  void *data;
+  std::string_view view;
+
+  bool operator==(const Token &rhs) const;
+
+  bool operator!=(const Token &rhs) const;
+};
+
 struct Lexer {
-
-  enum class TokenType {
-    DEF,
-    IDENT,
-    LPAREN,
-    RPAREN,
-    COLON,
-    RETURN,
-    NONE,
-    NEWLINE,
-    INDENT,
-    DEDENT,
-    UNKNOWN_DEDENT,
-    UNKNOWN,
-    END
-  };
-
-  enum LexerState { NORMAL, INDENTATION, DEDENT, END };
-
-  struct Token {
-    friend std::ostream &operator<<(std::ostream &os, const Token &token);
-
-    Lexer::TokenType type;
-    void *data;
-    std::string_view view;
-  };
 
   std::string_view data;
   std::string running_string;
@@ -50,4 +56,4 @@ struct Lexer {
   bool handle_newline(Token &tok);
 };
 
-std::ostream &operator<<(std::ostream &os, const Lexer::TokenType &type);
+std::ostream &operator<<(std::ostream &os, const TokenType &type);

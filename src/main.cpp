@@ -1,28 +1,25 @@
 #include "lexer.h"
+#include "parser.h"
 #include <iostream>
 
 int main() {
   std::string s = R"(
 
-   
-
 def hi():
-  def hi():
     return None
-
-  
-
-  def hi():
-    return None
-  return None
-
-    
 
 )";
 
   Lexer l{s};
+  Program program;
 
-  while (l.has_next()) {
-    std::cout << l.next() << std::endl;
-  }
+  Parser p{l};
+
+  p.try_parse_program(program);
+
+  std::cout << program << std::endl;
+
+  // while (l.has_next()) {
+  //   std::cout << l.next() << std::endl;
+  // }
 }
