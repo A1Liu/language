@@ -20,7 +20,7 @@ def hi():
 
 )";
 
-  Lexer l{std::move(s)};
+  Lexer l{s};
 
   while (l.has_next()) {
     std::cout << l.next() << std::endl;

@@ -29,18 +29,17 @@ struct Lexer {
 
     Lexer::TokenType type;
     void *data;
-    int begin;
-    int end; // exclusive on end
+    std::string_view view;
   };
 
-  std::string data;
+  std::string_view data;
   std::string running_string;
   std::vector<int> indentation_stack;
   uint32_t index = 0;
   uint16_t state = LexerState::INDENTATION;
   uint16_t indentation_count = 0;
 
-  explicit Lexer(std::string &&data);
+  explicit Lexer(const std::string &data);
 
   bool has_next();
   Token next();

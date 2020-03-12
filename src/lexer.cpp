@@ -4,10 +4,10 @@
 struct Escaped {
   const std::string_view str;
 
-  Escaped(std::string_view &_str) : str(_str) {}
+  Escaped(const std::string_view &_str) : str(_str) {}
 
   friend inline std::ostream &operator<<(std::ostream &os, const Escaped &e) {
-    for (const char *char_p = e.str.data(); *char_p != '\0'; char_p++) {
+    for (const char *char_p = e.str.begin(); char_p != e.str.end(); char_p++) {
       switch (*char_p) {
       case '\a':
         os << "\\a";
@@ -50,7 +50,7 @@ struct Escaped {
   }
 };
 
-Lexer::Lexer(std::string &&_data) : data(_data) {
+Lexer::Lexer(const std::string &_data) : data(_data) {
   indentation_stack.push_back(0);
 }
 
@@ -73,8 +73,6 @@ void Lexer::next(Token &tok) {
     indentation_count--;
     tok.type = TokenType::DEDENT;
     tok.data = nullptr;
-    tok.begin = index;
-    tok.end = index;
   } else if (state == LexerState::NORMAL) {
     next_tok_normal(tok);
   } else if (state == LexerState::INDENTATION) {
@@ -86,7 +84,7 @@ void Lexer::next_tok_indent(Token &tok) {
 
   int indentation_level = 0;
   bool done = false;
-  tok.begin = index;
+  int begin = index;
   tok.data = nullptr;
 
   for (; !done && index < data.size();) {
@@ -97,6 +95,7 @@ void Lexer::next_tok_indent(Token &tok) {
         return;
       }
       indentation_level = 0;
+      begin = index;
       break;
     case ' ':
       indentation_level += 1;
@@ -112,7 +111,7 @@ void Lexer::next_tok_indent(Token &tok) {
   }
 
   int previous_indentation = indentation_stack.back();
-  tok.end = index;
+  int end = index;
   if (indentation_level < previous_indentation) {
     for (indentation_count = 0;
          indentation_level < (previous_indentation = indentation_stack.back());
@@ -126,6 +125,7 @@ void Lexer::next_tok_indent(Token &tok) {
     } else {
       tok.type = TokenType::UNKNOWN_DEDENT;
     }
+    tok.view = data.substr(begin, end - begin);
   } else if (index == data.size()) {
     tok.type = TokenType::END;
     state = LexerState::END;
@@ -136,6 +136,7 @@ void Lexer::next_tok_indent(Token &tok) {
     tok.type = TokenType::INDENT;
     state = LexerState::NORMAL;
     indentation_stack.push_back(indentation_level);
+    tok.view = data.substr(begin, end - begin);
   }
 }
 
@@ -151,16 +152,15 @@ void Lexer::next_tok_normal(Token &tok) {
     state = LexerState::END;
     tok.type = TokenType::END;
     tok.data = nullptr;
-    tok.begin = index;
-    tok.end = index;
     return;
   }
 
-  tok.begin = index;
+  int begin = index;
 
-  auto advance_single_token = [&tok, this](TokenType token_type) {
+  auto advance_single_token = [&tok, begin, this](TokenType token_type) {
     tok.type = token_type;
-    tok.end = ++index;
+    ++index;
+    tok.view = data.substr(begin, 1);
     tok.data = nullptr;
     if (index == data.size()) {
       state = LexerState::END;
@@ -197,10 +197,10 @@ void Lexer::next_tok_normal(Token &tok) {
     break;
   }
 
-  tok.end = index;
+  int end = index;
 
   for (char c; index < data.size() && isalpha(c = data.at(index));
-       running_string.push_back(c), tok.end = ++index) {
+       running_string.push_back(c), end = ++index) {
   }
 
   if (running_string == "def") {
@@ -216,30 +216,32 @@ void Lexer::next_tok_normal(Token &tok) {
   if (index == data.size()) {
     state = LexerState::END;
   }
+
+  tok.view = data.substr(begin, end - begin);
   running_string.clear();
 }
 
 bool Lexer::handle_newline(Token &tok) {
   tok.type = TokenType::NEWLINE;
   tok.data = nullptr;
-  tok.begin = index;
+  int begin = index;
   if (data.at(index) == '\n') {
-    tok.end = ++index;
+    ++index;
+    tok.view = data.substr(begin, 1);
   } else if (data.at(index) == '\r' && data.at(index + 1) == '\n') {
     index += 2;
-    tok.end = index;
+    tok.view = data.substr(begin, 2);
   } else {
     tok.type = TokenType::UNKNOWN;
     index += 2;
-    tok.end = index;
+    tok.view = data.substr(begin, 2);
     return false;
   }
   return true;
 }
 
 std::ostream &operator<<(std::ostream &os, const Lexer::Token &token) {
-  os << "type: " << token.type << " data: " << token.data
-     << " begin: " << token.begin << " end: " << token.end;
+  os << "type: " << token.type << " view: `" << Escaped(token.view) << '`';
   return os;
 }
 
