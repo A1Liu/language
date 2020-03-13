@@ -205,6 +205,8 @@ void Lexer::next_tok_normal(Token &tok) {
     tok.type = TokenType::NONE;
   } else if (running_string == "return") {
     tok.type = TokenType::RETURN;
+  } else if (running_string == "pass") {
+    tok.type = TokenType::PASS;
   } else {
     tok.type = TokenType::IDENT;
   }
