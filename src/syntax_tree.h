@@ -1,5 +1,6 @@
 #include <ostream>
 #include <string_view>
+#include <variant>
 #include <vector>
 
 struct Expression;
@@ -7,9 +8,39 @@ struct Function;
 struct Return;
 struct Statement;
 
+struct NoneExpr {
+  friend std::ostream &operator<<(std::ostream &os, const NoneExpr &);
+};
+
+struct IntegerLiteral {};
+
+struct FloatingLiteral {};
+
+struct StringLiteral {};
+
+struct Identifier {};
+
+struct FunctionCall {};
+
+enum class BinaryOpType { Plus, Multply, Divide, Add };
+
+enum class UnaryOpType {};
+
+struct BinaryOp {
+  BinaryOpType type;
+  Expression *left;
+  Expression *right;
+};
+
+struct UnaryOp {
+  UnaryOpType type;
+  Expression *operand;
+};
+
 struct Expression {
-  enum class ExprType { None };
-  ExprType type;
+  std::variant<NoneExpr, IntegerLiteral, FloatingLiteral, StringLiteral,
+               FunctionCall, Identifier, BinaryOpType, UnaryOpType>
+      expr = NoneExpr();
 
   friend std::ostream &operator<<(std::ostream &os,
                                   const Expression &expression);
@@ -24,24 +55,19 @@ struct Function {
   std::string_view name;
   std::vector<Statement> statements;
 
-  friend std::ostream &operator<<(std::ostream &os, const Function &function);
+  friend std::ostream &operator<<(std::ostream &os, const Function &func);
+};
+
+struct Pass {
+  friend std::ostream &operator<<(std::ostream &os, const Pass &pass);
 };
 
 struct Statement {
-  enum class StmtType { Function, Return };
+  std::variant<Function, Return, Pass> data;
 
-  StmtType type;
-  union {
-    Function func;
-    Return retStmt;
-  };
-
+  Statement();
   Statement(const Function &func);
   Statement(const Return &ret);
-  Statement(const Statement &stmt);
-  ~Statement();
-
-  Statement &operator=(const Statement &other);
 
   static Statement &assign_to_left(Statement &left, const Statement &right);
 
@@ -51,5 +77,5 @@ struct Statement {
 struct Program {
   std::vector<Statement> statements;
 
-    friend std::ostream &operator<<(std::ostream &os, const Program &program);
+  friend std::ostream &operator<<(std::ostream &os, const Program &program);
 };

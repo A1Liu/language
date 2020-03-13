@@ -6,25 +6,43 @@ Parser::Parser(Lexer &lexer) {
   }
 }
 
+const Token &Parser::peek() { return tokens.at(index); }
+Token &Parser::pop() { return tokens.at(index++); }
+int Parser::idx() { return index; }
+void Parser::reset(int idx) { index = idx; }
+
 bool Parser::try_parse_program(Program &program) {
+  Statement stmt;
+  bool result = true;
+  while (peek().type != TokenType::END &&
+         (result = try_parse_statement(stmt))) {
+    program.statements.push_back(std::move(stmt));
+  }
 
-  Statement s{Function()};
+  return result;
+}
 
-  program.statements.push_back(s);
+bool Parser::try_parse_statement(Statement &statement) {
+  TokenType type = peek().type;
+  if (type == TokenType::PASS) { // Do nothing
+    return true;
+  }
 
-  return try_parse_function(program.statements.back().func);
+  if (type == TokenType::DEF) {
+    return try_parse_function(std::get<Function>(statement.data = Function()));
+  } else if (type == TokenType::RETURN) {
+    return try_parse_return(std::get<Return>(statement.data = Return()));
+  }
+
+  return false;
 }
 
 bool Parser::try_parse_function(Function &func) {
 
-  int begin = index;
-
-  auto assert_bump = [this, begin](TokenType type) {
-    if (tokens.at(index).type != TokenType::DEF) {
-      index = begin;
+  auto assert_bump = [this](TokenType type) {
+    if (pop().type != type) {
       return false;
     } else {
-      index++;
       return true;
     }
   };
@@ -32,46 +50,67 @@ bool Parser::try_parse_function(Function &func) {
   if (!assert_bump(TokenType::DEF)) {
     return false;
   }
-  if (!assert_bump(TokenType::IDENT)) {
-    return false;
-  }
-  func.name = tokens.at(index).view;
 
-  if (!assert_bump(TokenType::LPAREN)) {
+  func.name = peek().view;
+  if (pop().type != TokenType::IDENT) {
     return false;
   }
 
-  if (!assert_bump(TokenType::RPAREN)) {
+  if (pop().type != TokenType::LPAREN) {
     return false;
   }
 
-  if (!assert_bump(TokenType::COLON)) {
+  if (pop().type != TokenType::RPAREN) {
     return false;
   }
 
-  if (!assert_bump(TokenType::NEWLINE)) {
+  if (pop().type != TokenType::COLON) {
     return false;
   }
 
-  if (!assert_bump(TokenType::INDENT)) {
+  if (pop().type != TokenType::NEWLINE) {
     return false;
   }
 
-  Return ret;
-  if (!try_parse_return(ret))
+  if (pop().type != TokenType::INDENT) {
     return false;
+  }
+
+  Statement stmt;
+  bool result = try_parse_statement(stmt);
+  if (result)
+    func.statements.push_back(stmt);
+  else
+    return false;
+
+  while (peek().type != TokenType::DEDENT &&
+         (result = try_parse_statement(stmt))) {
+    func.statements.push_back(std::move(stmt));
+  }
 
   if (!assert_bump(TokenType::DEDENT)) {
     return false;
   }
-
   return true;
 }
 
 bool Parser::try_parse_return(Return &ret) {
-  if (tokens.at(index).type != TokenType::RETURN ||
-      tokens.at(index + 1).type != TokenType::NONE)
+  if (pop().type != TokenType::RETURN) {
     return false;
-  index += 2;
-  return true;
+  }
+
+  Expression expr;
+  if (!try_parse_expression(expr)) {
+    return false;
+  }
+
+  return pop().type == TokenType::NEWLINE;
+}
+
+bool Parser::try_parse_expression(Expression &expr) {
+  if (peek().type == TokenType::NONE) {
+    pop();
+    return true;
+  }
+  return false;
 }

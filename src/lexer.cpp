@@ -72,7 +72,6 @@ void Lexer::next(Token &tok) {
              (state == LexerState::DEDENT || state == LexerState::END)) {
     indentation_count--;
     tok.type = TokenType::DEDENT;
-    tok.data = nullptr;
   } else if (state == LexerState::NORMAL) {
     next_tok_normal(tok);
   } else if (state == LexerState::INDENTATION) {
@@ -85,7 +84,6 @@ void Lexer::next_tok_indent(Token &tok) {
   int indentation_level = 0;
   bool done = false;
   int begin = index;
-  tok.data = nullptr;
 
   for (; !done && index < data.size();) {
     switch (data.at(index)) {
@@ -151,7 +149,6 @@ void Lexer::next_tok_normal(Token &tok) {
   if (index == data.size()) {
     state = LexerState::END;
     tok.type = TokenType::END;
-    tok.data = nullptr;
     return;
   }
 
@@ -161,7 +158,6 @@ void Lexer::next_tok_normal(Token &tok) {
     tok.type = token_type;
     ++index;
     tok.view = data.substr(begin, 1);
-    tok.data = nullptr;
     if (index == data.size()) {
       state = LexerState::END;
     }
@@ -223,7 +219,6 @@ void Lexer::next_tok_normal(Token &tok) {
 
 bool Lexer::handle_newline(Token &tok) {
   tok.type = TokenType::NEWLINE;
-  tok.data = nullptr;
   int begin = index;
   if (data.at(index) == '\n') {
     ++index;
@@ -246,7 +241,7 @@ std::ostream &operator<<(std::ostream &os, const Token &token) {
 }
 
 bool Token::operator==(const Token &rhs) const {
-  return type == rhs.type && data == rhs.data && view == rhs.view;
+  return type == rhs.type && view == rhs.view;
 }
 
 bool Token::operator!=(const Token &rhs) const { return !(rhs == *this); }
@@ -291,6 +286,9 @@ std::ostream &operator<<(std::ostream &os, const TokenType &type) {
     break;
   case TokenType::END:
     os << "END";
+    break;
+  case TokenType::PASS:
+    os << "PASS";
     break;
   }
   return os;

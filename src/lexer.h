@@ -18,7 +18,8 @@ enum class TokenType {
   DEDENT,
   UNKNOWN_DEDENT,
   UNKNOWN,
-  END
+  END,
+  PASS
 };
 
 enum LexerState { NORMAL, INDENTATION, DEDENT, END };
@@ -28,7 +29,11 @@ struct Token {
   friend std::ostream &operator<<(std::ostream &os, const Token &token);
 
   TokenType type;
-  void *data;
+  union {
+    double floating_value;
+    uint64_t integer_value;
+    char *string_value;
+  };
   std::string_view view;
 
   bool operator==(const Token &rhs) const;

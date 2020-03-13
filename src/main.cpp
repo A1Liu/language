@@ -15,8 +15,13 @@ def hi():
 
   Parser p{l};
 
-  p.try_parse_program(program);
+  bool a = p.try_parse_program(program);
 
+  for (Token& tok : p.tokens) {
+      std::cout << tok << std::endl;
+  }
+
+  if (!a) std::cout << "failed" << std::endl;
   std::cout << program << std::endl;
 
   // while (l.has_next()) {

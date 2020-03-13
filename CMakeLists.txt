@@ -9,3 +9,4 @@ add_executable(language
         src/lexer.cpp
         src/parser.cpp
         src/main.cpp src/parser.cpp src/syntax_tree.cpp)
+
