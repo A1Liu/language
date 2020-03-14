@@ -58,6 +58,7 @@ struct Lexer {
 
   void next_tok_normal(Token &tok);
   void next_tok_indent(Token &tok);
+  void handle_numeric(Token &tok);
   bool handle_newline(Token &tok);
 };
 

@@ -24,3 +24,41 @@ as Java.
 4. Shadowing is not allowed, except accross function boundaries
 5. Variables are implicitly initialized to none
 6. If, Else, etc. do not produce a new scope.
+
+## Examples
+
+```python
+def function():
+  pass
+
+print("Hello, world!")
+
+class A()<In, Out>:
+  pass
+```
+
+Should translate to the following java code:
+
+```java
+public class Script {
+  public class Function0 {
+    public Object call() {
+      return null;
+    }
+  }
+
+  public class A<In, Out> {}
+
+  public static Function0 function;
+  public static Class<? extends Object> classA;
+
+  static {
+    function = new Function0;
+
+    System.out.println("Hello, world!");
+
+    classA = A.class;
+  }
+}
+```
+

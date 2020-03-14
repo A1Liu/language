@@ -188,7 +188,7 @@ void Lexer::next_tok_normal(Token &tok) {
   case '7':
   case '8':
   case '9':
-    throw 0;
+    handle_numeric(tok);
   default: // It's some kind of keyword or identifier
     break;
   }
@@ -236,6 +236,8 @@ bool Lexer::handle_newline(Token &tok) {
   }
   return true;
 }
+
+void Lexer::handle_numeric(Token &tok) { throw 1; }
 
 std::ostream &operator<<(std::ostream &os, const Token &token) {
   os << "type: " << token.type << " view: `" << Escaped(token.view) << '`';
