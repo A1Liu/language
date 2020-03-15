@@ -6,7 +6,7 @@ int main() {
   std::string s = R"(
 
 def hi():
-    return None
+    return 12.12
 
 )";
 
@@ -17,11 +17,12 @@ def hi():
 
   bool a = p.try_parse_program(program);
 
-  for (Token& tok : p.tokens) {
-      std::cout << tok << std::endl;
+  for (Token &tok : p.tokens) {
+    std::cout << tok << std::endl;
   }
 
-  if (!a) std::cout << "failed" << std::endl;
+  if (!a)
+    std::cout << "failed" << std::endl;
   std::cout << program << std::endl;
 
   // while (l.has_next()) {

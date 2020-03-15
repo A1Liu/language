@@ -7,11 +7,40 @@
 
 enum class TokenType {
   DEF,
+  PASS,
+  RETURN,
+  SWITCH,
+  CASE,
+  BREAK,
+  FOR,
+  WHILE,
+  IN,
+  IS,
+  EXPLICIT,
+  CLASS,
+  RAISE,
+  YIELD,
+  ASYNC,
+  IF,
+  ELSE,
   IDENT,
   LPAREN,
   RPAREN,
+  LBRACKET,
+  RBRACKET,
+  LESS_THAN,
+  GREATER_THAN,
+  LESS_EQ,
+  GREATER_EQ,
+  ARROW,
+  DOT,
+  PLUS,
+  MINUS,
+  STAR,
+  STAR_STAR,
+  DIV,
+  DIV_DIV,
   COLON,
-  RETURN,
   NONE,
   NEWLINE,
   INDENT,
@@ -19,7 +48,13 @@ enum class TokenType {
   UNKNOWN_DEDENT,
   UNKNOWN,
   END,
-  PASS
+  INTEGER,
+  FLOATING_POINT,
+  STRING,
+  INT_TYPE,
+  FLOAT_TYPE,
+  STR_TYPE,
+  BOOL_TYPE
 };
 
 enum LexerState { NORMAL, INDENTATION, DEDENT, END };
@@ -32,7 +67,6 @@ struct Token {
   union {
     double floating_value;
     uint64_t integer_value;
-    char *string_value;
   };
   std::string_view view;
 

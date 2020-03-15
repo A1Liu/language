@@ -1,4 +1,5 @@
 #include "lexer.h"
+#include <cstdlib>
 #include <ostream>
 
 struct Escaped {
@@ -189,6 +190,7 @@ void Lexer::next_tok_normal(Token &tok) {
   case '8':
   case '9':
     handle_numeric(tok);
+    return;
   default: // It's some kind of keyword or identifier
     break;
   }
@@ -237,10 +239,42 @@ bool Lexer::handle_newline(Token &tok) {
   return true;
 }
 
-void Lexer::handle_numeric(Token &tok) { throw 1; }
+void Lexer::handle_numeric(Token &tok) {
+  char *begin = const_cast<char *>(&data.at(index));
+  int len = 1;
+  for (index += 1; data.at(index) >= '0' && data.at(index) <= '9';
+       index++, len++)
+    ;
+
+  bool found_dot = data.at(index) == '.';
+
+  if (found_dot) {
+    for (len += 1, index += 1; data.at(index) >= '0' && data.at(index) <= '9';
+         index++, len++)
+      ;
+  }
+  tok.view =
+      std::string_view{begin, static_cast<std::string_view::size_type>(len)};
+
+  char *end = begin + len;
+  if (found_dot) {
+    tok.type = TokenType::FLOATING_POINT;
+    tok.floating_value = std::strtod(begin, &end);
+  } else {
+    tok.type = TokenType::INTEGER;
+    tok.integer_value = std::strtol(begin, &end, 10);
+  }
+}
 
 std::ostream &operator<<(std::ostream &os, const Token &token) {
-  os << "type: " << token.type << " view: `" << Escaped(token.view) << '`';
+  os << "type: " << token.type;
+  if (token.type == TokenType::INTEGER) {
+    os << " value: " << token.integer_value;
+  } else if (token.type == TokenType::FLOATING_POINT) {
+    os << " value: " << token.floating_value;
+  } else {
+    os << " view: `" << Escaped(token.view) << '`';
+  }
   return os;
 }
 
@@ -251,49 +285,61 @@ bool Token::operator==(const Token &rhs) const {
 bool Token::operator!=(const Token &rhs) const { return !(rhs == *this); }
 
 std::ostream &operator<<(std::ostream &os, const TokenType &type) {
+#define case_macro(token_type)                                                 \
+  case TokenType::token_type:                                                  \
+    os << #token_type;                                                         \
+    break
+
   switch (type) {
-  case TokenType::DEF:
-    os << "DEF";
-    break;
-  case TokenType::IDENT:
-    os << "IDENT";
-    break;
-  case TokenType::LPAREN:
-    os << "LPAREN";
-    break;
-  case TokenType::RPAREN:
-    os << "RPAREN";
-    break;
-  case TokenType::COLON:
-    os << "COLON";
-    break;
-  case TokenType::RETURN:
-    os << "RETURN";
-    break;
-  case TokenType::NONE:
-    os << "NONE";
-    break;
-  case TokenType::NEWLINE:
-    os << "NEWLINE";
-    break;
-  case TokenType::INDENT:
-    os << "INDENT";
-    break;
-  case TokenType::DEDENT:
-    os << "DEDENT";
-    break;
-  case TokenType::UNKNOWN_DEDENT:
-    os << "UNKNOWN_DEDENT";
-    break;
-  case TokenType::UNKNOWN:
-    os << "UNKNOWN";
-    break;
-  case TokenType::END:
-    os << "END";
-    break;
-  case TokenType::PASS:
-    os << "PASS";
-    break;
+    case_macro(DEF);
+    case_macro(PASS);
+    case_macro(RETURN);
+    case_macro(SWITCH);
+    case_macro(CASE);
+    case_macro(BREAK);
+    case_macro(FOR);
+    case_macro(WHILE);
+    case_macro(IN);
+    case_macro(IS);
+    case_macro(EXPLICIT);
+    case_macro(CLASS);
+    case_macro(RAISE);
+    case_macro(YIELD);
+    case_macro(ASYNC);
+    case_macro(IF);
+    case_macro(ELSE);
+    case_macro(IDENT);
+    case_macro(LPAREN);
+    case_macro(RPAREN);
+    case_macro(LBRACKET);
+    case_macro(RBRACKET);
+    case_macro(LESS_THAN);
+    case_macro(GREATER_THAN);
+    case_macro(LESS_EQ);
+    case_macro(GREATER_EQ);
+    case_macro(ARROW);
+    case_macro(DOT);
+    case_macro(PLUS);
+    case_macro(MINUS);
+    case_macro(STAR);
+    case_macro(STAR_STAR);
+    case_macro(DIV);
+    case_macro(DIV_DIV);
+    case_macro(COLON);
+    case_macro(NONE);
+    case_macro(NEWLINE);
+    case_macro(INDENT);
+    case_macro(DEDENT);
+    case_macro(UNKNOWN_DEDENT);
+    case_macro(UNKNOWN);
+    case_macro(END);
+    case_macro(INTEGER);
+    case_macro(FLOATING_POINT);
+    case_macro(STRING);
+    case_macro(INT_TYPE);
+    case_macro(FLOAT_TYPE);
+    case_macro(STR_TYPE);
+    case_macro(BOOL_TYPE);
   }
   return os;
 }
