@@ -1,14 +1,18 @@
 #include "parser.h"
 #include <iostream>
 
+// Propogate
+#define prop(expr)                                                             \
+  if (!(expr)) {                                                               \
+    return false;                                                              \
+  }
+
 Parser::Parser(Lexer &lexer) {
   Token tok;
-  tokens.push_back(tok = lexer.next());
-  std::cout << tok << std::endl;
-  while (tok.type != TokenType::END) {
+  do {
     tokens.push_back(tok = lexer.next());
     std::cout << tok << std::endl;
-  }
+  } while (tok.type != TokenType::END);
 }
 
 const Token &Parser::peek() { return tokens.at(index); }
@@ -30,7 +34,8 @@ bool Parser::try_parse_program(Program &program) {
 bool Parser::try_parse_statement(Statement &statement) {
   TokenType type = peek().type;
   if (type == TokenType::PASS) { // Do nothing
-    return true;
+    pop();
+    return pop().type == TokenType::NEWLINE;
   }
 
   if (type == TokenType::DEF) {
@@ -44,48 +49,23 @@ bool Parser::try_parse_statement(Statement &statement) {
 
 bool Parser::try_parse_function(Function &func) {
 
-  auto assert_bump = [this](TokenType type) {
-    if (pop().type != type) {
-      return false;
-    } else {
-      return true;
-    }
-  };
-
-  if (!assert_bump(TokenType::DEF)) {
+  if (pop().type != TokenType::DEF) {
     return false;
   }
 
   func.name = peek().view;
-  if (pop().type != TokenType::IDENT) {
-    return false;
-  }
-
-  if (pop().type != TokenType::LPAREN) {
-    return false;
-  }
-
-  if (pop().type != TokenType::RPAREN) {
-    return false;
-  }
-
-  if (pop().type != TokenType::COLON) {
-    return false;
-  }
-
-  if (pop().type != TokenType::NEWLINE) {
-    return false;
-  }
-
-  if (pop().type != TokenType::INDENT) {
-    return false;
-  }
+  prop(pop().type == TokenType::IDENT);
+  prop(pop().type == TokenType::LPAREN);
+  prop(pop().type == TokenType::RPAREN);
+  prop(pop().type == TokenType::COLON);
+  prop(pop().type == TokenType::NEWLINE);
+  prop(pop().type == TokenType::INDENT);
 
   Statement stmt;
   bool result = try_parse_statement(stmt);
-  if (result)
+  if (result) {
     func.statements.push_back(stmt);
-  else
+  } else
     return false;
 
   while (peek().type != TokenType::DEDENT &&
@@ -93,34 +73,52 @@ bool Parser::try_parse_function(Function &func) {
     func.statements.push_back(std::move(stmt));
   }
 
-  if (!assert_bump(TokenType::DEDENT)) {
-    return false;
-  }
+  prop(pop().type == TokenType::DEDENT);
+
   return true;
 }
 
 bool Parser::try_parse_return(Return &ret) {
-  if (pop().type != TokenType::RETURN) {
-    return false;
-  }
-
-  Expression expr;
-  if (!try_parse_expr(expr)) {
-    return false;
-  }
+  prop(pop().type == TokenType::RETURN);
+  prop(try_parse_expr(ret.expr));
 
   return pop().type == TokenType::NEWLINE;
 }
 
 bool Parser::try_parse_expr(Expression &expr) {
-  if (peek().type == TokenType::NONE) {
-    pop();
+  Expression left;
+  prop(try_parse_unary_expr(left));
+
+  BinaryOpType boptype;
+  switch (peek().type) {
+  case TokenType::PLUS:
+    boptype = BinaryOpType::Plus;
+    break;
+  case TokenType::MINUS:
+    boptype = BinaryOpType::Minus;
+    break;
+  case TokenType::STAR:
+    boptype = BinaryOpType::Multiply;
+    break;
+  case TokenType::DIV_DIV:
+    boptype = BinaryOpType::DoubleDivide;
+    break;
+  case TokenType::PERCENT:
+    boptype = BinaryOpType::Modulo;
+    break;
+  default:
+    expr = left;
     return true;
   }
-  return false;
-}
+  pop();
 
-bool Parser::try_parse_binary_expr(Expression &expr) { return false; }
+  Expression *right = new Expression();
+  prop(try_parse_unary_expr(*right));
+
+  expr.expr = BinaryOp(boptype, new Expression(left), right);
+
+  return true;
+}
 
 bool Parser::try_parse_unary_expr(Expression &expr) {
   TokenType type = peek().type;
@@ -137,20 +135,24 @@ bool Parser::try_parse_unary_expr(Expression &expr) {
     uoptype = UnaryOpType::DoubleSplat;
     break;
   default:
-    return try_parse_atom_expr(expr);
+    return try_parse_postfix_expr(expr);
   }
   pop();
   Expression *next_expr = new Expression();
 
-  if (!try_parse_atom_expr(*next_expr)) {
-    return false;
-  }
+  prop(try_parse_postfix_expr(*next_expr));
+
   expr.expr = UnaryOp(uoptype, next_expr);
   return true;
 }
 
+// @TODO Brackets
+bool Parser::try_parse_postfix_expr(Expression &expr) {
+  return try_parse_atom_expr(expr);
+}
+
 bool Parser::try_parse_atom_expr(Expression &expr) {
-  Token tok = peek();
+  Token tok = pop();
 
   switch (tok.type) {
   case TokenType::IDENT:
@@ -162,7 +164,11 @@ bool Parser::try_parse_atom_expr(Expression &expr) {
   case TokenType::FLOATING_POINT:
     expr.expr = FloatLiteral(tok.floating_value);
     return true;
-  default:
+  case TokenType::NONE:
+    expr.expr = NoneExpr();
+    return true;
+  default: // @TODO dictionary/list literals, slice literals, accessors,
+           // function calls
     return false;
   }
 }

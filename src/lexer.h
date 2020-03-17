@@ -40,6 +40,7 @@ enum class TokenType {
   STAR_STAR,
   DIV,
   DIV_DIV,
+  PERCENT,
   COLON,
   NONE,
   NEWLINE,
@@ -80,18 +81,18 @@ struct Lexer {
   std::string_view data;
   std::vector<int> indentation_stack;
   uint32_t index = 0;
-  uint16_t indentation_count = 0;
+  uint16_t indentation_level = 0;
   uint8_t parentheses_count = 0;
   uint8_t state = LexerState::INDENTATION;
 
   explicit Lexer(const std::string &data);
 
-  bool has_next();
   Token next();
   void next(Token &tok);
 
   void next_tok_normal(Token &tok);
   void next_tok_indent(Token &tok);
+  void next_tok_dedent(Token &tok);
   void handle_numeric(Token &tok);
   bool handle_newline(Token &tok);
 };

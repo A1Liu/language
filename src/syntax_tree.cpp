@@ -5,6 +5,23 @@ std::ostream &operator<<(std::ostream &os, const NoneExpr &expr) {
   return os << "None";
 }
 
+std::ostream &operator<<(std::ostream &os, const IntegerLiteral &lit) {
+  return os << lit.value;
+}
+std::ostream &operator<<(std::ostream &os, const FloatLiteral &lit) {
+  return os << lit.value;
+}
+
+std::ostream &operator<<(std::ostream &os, const UnaryOp &uop) {
+  return os << uop.type << *uop.operand;
+}
+std::ostream &operator<<(std::ostream &os, const BinaryOp &bop) {
+  return os << *bop.left << ' ' << bop.type << ' ' << *bop.left;
+}
+std::ostream &operator<<(std::ostream &os, const Identifier &ident) {
+  return os << ident.name;
+}
+
 std::ostream &operator<<(std::ostream &os, const Pass &pass) {
   return os << "pass";
 }
@@ -71,7 +88,17 @@ std::ostream &operator<<(std::ostream &os, const Statement &statement) {
 std::ostream &operator<<(std::ostream &os, const Expression &expression) {
   switch (expression.expr.index()) {
   case 0:
-    os << std::get<0>(expression.expr);
+    return os << std::get<0>(expression.expr);
+  case 1:
+    return os << std::get<1>(expression.expr);
+  case 2:
+    return os << std::get<2>(expression.expr);
+  case 3:
+    return os << std::get<3>(expression.expr);
+  case 4:
+    return os << std::get<4>(expression.expr);
+  case 5:
+    return os << std::get<5>(expression.expr);
     // case 1:
     //   os << std::get<1>(expression.expr);
     // case 2:

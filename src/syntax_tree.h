@@ -69,8 +69,6 @@ struct Statement {
   Statement(const Function &func) { this->data = func; }
   Statement(const Return &ret) { this->data = ret; }
   Statement() { this->data = Pass(); }
-
-  static Statement &assign_to_left(Statement &left, const Statement &right);
 };
 
 struct Program {
@@ -80,7 +78,9 @@ struct Program {
 std::ostream &operator<<(std::ostream &os, const NoneExpr &);
 std::ostream &operator<<(std::ostream &os, const IntegerLiteral &);
 std::ostream &operator<<(std::ostream &os, const FloatLiteral &);
-std::ostream &operator<<(std::ostream &os, const FloatLiteral &);
+std::ostream &operator<<(std::ostream &os, const UnaryOp &);
+std::ostream &operator<<(std::ostream &os, const BinaryOp &);
+std::ostream &operator<<(std::ostream &os, const Identifier &);
 std::ostream &operator<<(std::ostream &os, const BinaryOpType &expression);
 std::ostream &operator<<(std::ostream &os, const UnaryOpType &expression);
 std::ostream &operator<<(std::ostream &os, const Expression &expression);

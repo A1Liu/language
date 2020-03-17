@@ -6,11 +6,11 @@ int main() {
   std::string s = R"(
 
 def hi():
-    return 12.12
-    (12 + 10)
+    return 1 + 12.12
+    def hi():
+      pass
 
-    asdf  asdf
-    h8i)";
+  )";
 
   Lexer l{s};
   Program program;
@@ -22,8 +22,4 @@ def hi():
   if (!a)
     std::cout << "failed" << std::endl;
   std::cout << program << std::endl;
-
-  // while (l.has_next()) {
-  //   std::cout << l.next() << std::endl;
-  // }
 }

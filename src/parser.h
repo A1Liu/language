@@ -7,6 +7,7 @@ struct Parser {
 
   std::string_view view;
   std::vector<Token> tokens;
+  std::vector<TokenType> binary_op_stack;
   int index = 0;
 
   Parser(Lexer &lexer);
@@ -22,6 +23,6 @@ struct Parser {
   bool try_parse_return(Return &ret);
   bool try_parse_expr(Expression &expr);
   bool try_parse_unary_expr(Expression &expr);
-  bool try_parse_binary_expr(Expression &expr);
+  bool try_parse_postfix_expr(Expression &expr);
   bool try_parse_atom_expr(Expression &expr);
 };

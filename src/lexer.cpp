@@ -56,10 +56,6 @@ Lexer::Lexer(const std::string &_data) : data(_data) {
   indentation_stack.push_back(0);
 }
 
-bool Lexer::has_next() {
-  return state != LexerState::END || indentation_count > 0;
-}
-
 Token Lexer::next() {
   Token tok;
   next(tok);
@@ -67,13 +63,8 @@ Token Lexer::next() {
 }
 
 void Lexer::next(Token &tok) {
-  if (state == LexerState::DEDENT && indentation_count == 0) {
-    state = LexerState::NORMAL;
-    next_tok_normal(tok);
-  } else if (indentation_count > 0 &&
-             (state == LexerState::DEDENT || state == LexerState::END)) {
-    indentation_count--;
-    tok.type = TokenType::DEDENT;
+  if (state == LexerState::DEDENT) {
+    next_tok_dedent(tok);
   } else if (state == LexerState::NORMAL) {
     next_tok_normal(tok);
   } else if (state == LexerState::INDENTATION) {
@@ -125,28 +116,13 @@ void Lexer::next_tok_indent(Token &tok) {
 
   int previous_indentation = indentation_stack.back();
   int end = index;
-  if (indentation_level < previous_indentation) {
-
-    // @TODO Move this loop to the dedent state, so that we can spit out better
-    // tokens for unknown dedent
-    for (indentation_count = 0;
-         indentation_level < (previous_indentation = indentation_stack.back());
-         indentation_stack.pop_back(), indentation_count++) {
-    }
-
-    indentation_count--;
-    if (indentation_level == previous_indentation) {
-      state = LexerState::DEDENT;
-      tok.type = TokenType::DEDENT;
-    } else {
-      indentation_stack.push_back(indentation_level);
-      tok.type = TokenType::UNKNOWN_DEDENT;
-      state = LexerState::NORMAL;
-    }
-    tok.view = data.substr(begin, end - begin);
-  } else if (index == data.size()) {
-    tok.type = TokenType::END;
+  if (index == data.size()) {
     state = LexerState::END;
+    next(tok);
+  } else if (indentation_level < previous_indentation) {
+    state = LexerState::DEDENT;
+    this->indentation_level = indentation_level;
+    next_tok_dedent(tok);
   } else if (indentation_level == previous_indentation) {
     state = LexerState::NORMAL;
     next_tok_normal(tok);
@@ -158,7 +134,26 @@ void Lexer::next_tok_indent(Token &tok) {
   }
 }
 
-void next_tok_dedent(Token &tok) {}
+void Lexer::next_tok_dedent(Token &tok) {
+  int previous_indentation = indentation_stack.back();
+  if (indentation_level < previous_indentation) {
+    indentation_stack.pop_back();
+    if (indentation_level > indentation_stack.back()) {
+      tok.type = TokenType::UNKNOWN_DEDENT;
+      state = LexerState::NORMAL;
+      indentation_stack.push_back(indentation_level);
+    } else {
+      tok.type = TokenType::DEDENT;
+    }
+  } else if (indentation_level == previous_indentation) {
+    state = LexerState::NORMAL;
+    next(tok);
+  } else {
+    state = LexerState::NORMAL;
+    tok.type = TokenType::UNKNOWN_DEDENT;
+    indentation_stack.push_back(indentation_level);
+  }
+}
 
 void Lexer::next_tok_normal(Token &tok) {
 
@@ -370,6 +365,7 @@ std::ostream &operator<<(std::ostream &os, const TokenType &type) {
     case_macro(STAR_STAR);
     case_macro(DIV);
     case_macro(DIV_DIV);
+    case_macro(PERCENT);
     case_macro(COLON);
     case_macro(NONE);
     case_macro(NEWLINE);
