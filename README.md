@@ -22,8 +22,10 @@ as Java.
 2. Generators, coroutines, asyncio, all supported
 3. implicit return of None
 4. Shadowing is not allowed, except accross function boundaries
-5. Variables are implicitly initialized to none
+5. Variables are implicitly initialized to `None`
 6. If, Else, etc. do not produce a new scope.
+7. No recursive imports; statically checked.
+8. Types cannot be reassigned.
 
 ## Examples
 
@@ -52,8 +54,8 @@ public class Script {
   public static Function0 function;
   public static Class<? extends Object> classA;
 
-  static {
-    function = new Function0;
+  public static void main() {
+    function = new Function0();
 
     System.out.println("Hello, world!");
 

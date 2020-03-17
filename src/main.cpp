@@ -7,8 +7,10 @@ int main() {
 
 def hi():
     return 12.12
+    (12 + 10)
 
-)";
+    asdf  asdf
+    h8i)";
 
   Lexer l{s};
   Program program;
@@ -16,10 +18,6 @@ def hi():
   Parser p{l};
 
   bool a = p.try_parse_program(program);
-
-  for (Token &tok : p.tokens) {
-    std::cout << tok << std::endl;
-  }
 
   if (!a)
     std::cout << "failed" << std::endl;

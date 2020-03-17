@@ -1,3 +1,4 @@
+#pragma once
 #include <ostream>
 #include <string_view>
 #include <variant>
@@ -8,74 +9,84 @@ struct Function;
 struct Return;
 struct Statement;
 
-struct NoneExpr {
-  friend std::ostream &operator<<(std::ostream &os, const NoneExpr &);
+struct NoneExpr {};
+
+struct IntegerLiteral {
+  int64_t value;
+
+  explicit IntegerLiteral(int64_t value_) : value(value_) {}
 };
 
-struct IntegerLiteral {};
+struct FloatLiteral {
+  double value;
+  explicit FloatLiteral(double value_) : value(value_) {}
+};
 
-struct FloatingLiteral {};
+struct Identifier {
+  std::string_view name;
+  Identifier(std::string_view name_) : name(name_) {}
+};
 
-struct StringLiteral {};
-
-struct Identifier {};
-
-struct FunctionCall {};
-
-enum class BinaryOpType { Plus, Multply, Divide, Add };
-
-enum class UnaryOpType {};
+enum class BinaryOpType { Plus, Multiply, Divide, Minus, DoubleDivide, Modulo };
+enum class UnaryOpType { Splat, DoubleSplat, Negate };
 
 struct BinaryOp {
   BinaryOpType type;
   Expression *left;
   Expression *right;
+
+  BinaryOp(BinaryOpType type_, Expression *left_, Expression *right_)
+      : type(type_), left(left_), right(right_) {}
 };
 
 struct UnaryOp {
   UnaryOpType type;
   Expression *operand;
+
+  UnaryOp(UnaryOpType type_, Expression *operand_)
+      : type(type_), operand(operand_) {}
 };
 
 struct Expression {
-  std::variant<NoneExpr, IntegerLiteral, FloatingLiteral, StringLiteral,
-               FunctionCall, Identifier, BinaryOpType, UnaryOpType>
+  std::variant<NoneExpr, IntegerLiteral, FloatLiteral, Identifier, BinaryOp,
+               UnaryOp>
       expr = NoneExpr();
-
-  friend std::ostream &operator<<(std::ostream &os,
-                                  const Expression &expression);
 };
 
 struct Return {
   Expression expr;
-  friend std::ostream &operator<<(std::ostream &os, const Return &aReturn);
 };
+struct Pass {};
 
 struct Function {
   std::string_view name;
   std::vector<Statement> statements;
-
-  friend std::ostream &operator<<(std::ostream &os, const Function &func);
-};
-
-struct Pass {
-  friend std::ostream &operator<<(std::ostream &os, const Pass &pass);
 };
 
 struct Statement {
-  std::variant<Function, Return, Pass> data;
+  std::variant<Function, Return, Pass, Expression> data;
 
-  Statement();
-  Statement(const Function &func);
-  Statement(const Return &ret);
+  Statement(const Function &func) { this->data = func; }
+  Statement(const Return &ret) { this->data = ret; }
+  Statement() { this->data = Pass(); }
 
   static Statement &assign_to_left(Statement &left, const Statement &right);
-
-  friend std::ostream &operator<<(std::ostream &os, const Statement &statement);
 };
 
 struct Program {
   std::vector<Statement> statements;
-
-  friend std::ostream &operator<<(std::ostream &os, const Program &program);
 };
+
+std::ostream &operator<<(std::ostream &os, const NoneExpr &);
+std::ostream &operator<<(std::ostream &os, const IntegerLiteral &);
+std::ostream &operator<<(std::ostream &os, const FloatLiteral &);
+std::ostream &operator<<(std::ostream &os, const FloatLiteral &);
+std::ostream &operator<<(std::ostream &os, const BinaryOpType &expression);
+std::ostream &operator<<(std::ostream &os, const UnaryOpType &expression);
+std::ostream &operator<<(std::ostream &os, const Expression &expression);
+
+std::ostream &operator<<(std::ostream &os, const Return &aReturn);
+std::ostream &operator<<(std::ostream &os, const Function &func);
+std::ostream &operator<<(std::ostream &os, const Pass &pass);
+std::ostream &operator<<(std::ostream &os, const Statement &statement);
+std::ostream &operator<<(std::ostream &os, const Program &program);

@@ -1,8 +1,13 @@
 #include "parser.h"
+#include <iostream>
 
 Parser::Parser(Lexer &lexer) {
-  while (lexer.has_next()) {
-    tokens.push_back(lexer.next());
+  Token tok;
+  tokens.push_back(tok = lexer.next());
+  std::cout << tok << std::endl;
+  while (tok.type != TokenType::END) {
+    tokens.push_back(tok = lexer.next());
+    std::cout << tok << std::endl;
   }
 }
 
@@ -100,17 +105,64 @@ bool Parser::try_parse_return(Return &ret) {
   }
 
   Expression expr;
-  if (!try_parse_expression(expr)) {
+  if (!try_parse_expr(expr)) {
     return false;
   }
 
   return pop().type == TokenType::NEWLINE;
 }
 
-bool Parser::try_parse_expression(Expression &expr) {
+bool Parser::try_parse_expr(Expression &expr) {
   if (peek().type == TokenType::NONE) {
     pop();
     return true;
   }
   return false;
+}
+
+bool Parser::try_parse_binary_expr(Expression &expr) { return false; }
+
+bool Parser::try_parse_unary_expr(Expression &expr) {
+  TokenType type = peek().type;
+  UnaryOpType uoptype;
+
+  switch (type) {
+  case TokenType::MINUS:
+    uoptype = UnaryOpType::Negate;
+    break;
+  case TokenType::STAR:
+    uoptype = UnaryOpType::Splat;
+    break;
+  case TokenType::STAR_STAR:
+    uoptype = UnaryOpType::DoubleSplat;
+    break;
+  default:
+    return try_parse_atom_expr(expr);
+  }
+  pop();
+  Expression *next_expr = new Expression();
+
+  if (!try_parse_atom_expr(*next_expr)) {
+    return false;
+  }
+  expr.expr = UnaryOp(uoptype, next_expr);
+  return true;
+}
+
+bool Parser::try_parse_atom_expr(Expression &expr) {
+  Token tok = peek();
+
+  switch (tok.type) {
+  case TokenType::IDENT:
+    expr.expr = Identifier(tok.view);
+    return true;
+  case TokenType::INTEGER:
+    expr.expr = IntegerLiteral(tok.integer_value);
+    return true;
+  case TokenType::FLOATING_POINT:
+    expr.expr = FloatLiteral(tok.floating_value);
+    return true;
+  default:
+    return false;
+  }
 }

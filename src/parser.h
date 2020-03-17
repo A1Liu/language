@@ -20,5 +20,8 @@ struct Parser {
   bool try_parse_statement(Statement &statement);
   bool try_parse_function(Function &func);
   bool try_parse_return(Return &ret);
-  bool try_parse_expression(Expression &expr);
+  bool try_parse_expr(Expression &expr);
+  bool try_parse_unary_expr(Expression &expr);
+  bool try_parse_binary_expr(Expression &expr);
+  bool try_parse_atom_expr(Expression &expr);
 };

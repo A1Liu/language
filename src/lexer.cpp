@@ -1,5 +1,6 @@
 #include "lexer.h"
 #include <cstdlib>
+#include <iostream>
 #include <ostream>
 
 struct Escaped {
@@ -77,6 +78,11 @@ void Lexer::next(Token &tok) {
     next_tok_normal(tok);
   } else if (state == LexerState::INDENTATION) {
     next_tok_indent(tok);
+  } else if (state == LexerState::END && indentation_stack.size() > 1) {
+    tok.type = TokenType::DEDENT;
+    indentation_stack.pop_back();
+  } else if (state == LexerState::END) {
+    tok.type = TokenType::END;
   }
 }
 
@@ -88,6 +94,14 @@ void Lexer::next_tok_indent(Token &tok) {
 
   for (; !done && index < data.size();) {
     switch (data.at(index)) {
+    case '\\':
+      index++;
+      if (!handle_newline(tok)) {
+        tok.view = std::string_view(&data.at(index), 2);
+        return;
+      }
+      begin = index;
+      break;
     case '\r':
     case '\n':
       if (!handle_newline(tok)) {
@@ -112,17 +126,22 @@ void Lexer::next_tok_indent(Token &tok) {
   int previous_indentation = indentation_stack.back();
   int end = index;
   if (indentation_level < previous_indentation) {
+
+    // @TODO Move this loop to the dedent state, so that we can spit out better
+    // tokens for unknown dedent
     for (indentation_count = 0;
          indentation_level < (previous_indentation = indentation_stack.back());
          indentation_stack.pop_back(), indentation_count++) {
     }
 
+    indentation_count--;
     if (indentation_level == previous_indentation) {
-      indentation_count--;
       state = LexerState::DEDENT;
       tok.type = TokenType::DEDENT;
     } else {
+      indentation_stack.push_back(indentation_level);
       tok.type = TokenType::UNKNOWN_DEDENT;
+      state = LexerState::NORMAL;
     }
     tok.view = data.substr(begin, end - begin);
   } else if (index == data.size()) {
@@ -139,67 +158,96 @@ void Lexer::next_tok_indent(Token &tok) {
   }
 }
 
+void next_tok_dedent(Token &tok) {}
+
 void Lexer::next_tok_normal(Token &tok) {
 
-  // Ignore leading whitespace
-  for (char c;
-       index < data.size() && ((c = data.at(index)) == ' ' || c == '\t');
-       index++) {
-  }
-
-  if (index == data.size()) {
-    state = LexerState::END;
-    tok.type = TokenType::END;
-    return;
-  }
-
-  int begin = index;
-
-  auto advance_single_token = [&tok, begin, this](TokenType token_type) {
+  auto advance_single_token = [&tok, this](TokenType token_type) {
     tok.type = token_type;
-    ++index;
-    tok.view = data.substr(begin, 1);
+    tok.view = data.substr(index++, 1);
     if (index == data.size()) {
       state = LexerState::END;
     }
   };
 
-  switch (data.at(index)) {
-  case '(':
-    advance_single_token(TokenType::LPAREN);
-    return;
-  case ')':
-    advance_single_token(TokenType::RPAREN);
-    return;
-  case ':':
-    advance_single_token(TokenType::COLON);
-    return;
-  case '\r':
-  case '\n': // Handle newlines
-    state = LexerState::INDENTATION;
-    handle_newline(tok);
-    return;
-  case '0':
-  case '1':
-  case '2':
-  case '3':
-  case '4':
-  case '5':
-  case '6':
-  case '7':
-  case '8':
-  case '9':
-    handle_numeric(tok);
-    return;
-  default: // It's some kind of keyword or identifier
-    break;
+  bool found_word = false;
+  while (!found_word) {
+    // Ignore leading whitespace
+    for (const char *c = &data.at(index); index < data.size();) {
+      c = &data.at(index);
+      if (*c == '\\') {
+        index++;
+        handle_newline(tok);
+        if (tok.type == TokenType::UNKNOWN) {
+          tok.view = std::string_view(c, 2);
+          return;
+        }
+      } else if (*c == ' ' || *c == '\t')
+        index++;
+      else {
+        break;
+      }
+    }
+
+    if (index == data.size()) {
+      state = LexerState::END;
+      next(tok);
+      return;
+    }
+
+    switch (data.at(index)) {
+    case '(':
+      advance_single_token(TokenType::LPAREN);
+      parentheses_count++;
+      return;
+    case ')':
+      advance_single_token(TokenType::RPAREN);
+      if (parentheses_count > 0) {
+        parentheses_count--;
+      }
+      return;
+    case ':':
+      advance_single_token(TokenType::COLON);
+      return;
+    case '+':
+      advance_single_token(TokenType::PLUS);
+      return;
+    case '\r':
+    case '\n': // Handle newlines
+      handle_newline(tok);
+      if (parentheses_count == 0) {
+        state = LexerState::INDENTATION;
+        return;
+      }
+      break;
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+      handle_numeric(tok);
+      return;
+    default: // It's some kind of keyword or identifier
+      if (isalpha(data.at(index))) {
+        found_word = true;
+      } else { // Or maybe something really wonky we don't recognize
+        tok.type = TokenType::UNKNOWN;
+        tok.view = data.substr(index++, 1);
+        return;
+      }
+    }
   }
 
-  int end = index;
+  int begin = index, i;
+  for (i = 0; index < data.size() && isalnum(data.at(index)); i++, index++)
+    ;
 
-  for (char c; index < data.size() && isalpha(c = data.at(index));
-       running_string.push_back(c), end = ++index) {
-  }
+  auto running_string = tok.view = std::string_view(&data.at(begin), i);
 
   if (running_string == "def") {
     tok.type = TokenType::DEF;
@@ -216,9 +264,6 @@ void Lexer::next_tok_normal(Token &tok) {
   if (index == data.size()) {
     state = LexerState::END;
   }
-
-  tok.view = data.substr(begin, end - begin);
-  running_string.clear();
 }
 
 bool Lexer::handle_newline(Token &tok) {
@@ -232,8 +277,8 @@ bool Lexer::handle_newline(Token &tok) {
     tok.view = data.substr(begin, 2);
   } else {
     tok.type = TokenType::UNKNOWN;
-    index += 2;
-    tok.view = data.substr(begin, 2);
+    index += 1;
+    tok.view = data.substr(begin, 1);
     return false;
   }
   return true;

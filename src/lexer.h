@@ -78,11 +78,11 @@ struct Token {
 struct Lexer {
 
   std::string_view data;
-  std::string running_string;
   std::vector<int> indentation_stack;
   uint32_t index = 0;
-  uint16_t state = LexerState::INDENTATION;
   uint16_t indentation_count = 0;
+  uint8_t parentheses_count = 0;
+  uint8_t state = LexerState::INDENTATION;
 
   explicit Lexer(const std::string &data);
 
