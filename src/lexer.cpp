@@ -1,6 +1,5 @@
 #include "lexer.h"
 #include <cstdlib>
-#include <iostream>
 #include <ostream>
 
 struct Escaped {

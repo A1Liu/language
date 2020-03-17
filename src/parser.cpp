@@ -1,5 +1,4 @@
 #include "parser.h"
-#include <iostream>
 
 // Propogate
 #define prop(expr)                                                             \
@@ -9,10 +8,9 @@
 
 Parser::Parser(Lexer &lexer) {
   Token tok;
-  do {
+  do
     tokens.push_back(tok = lexer.next());
-    std::cout << tok << std::endl;
-  } while (tok.type != TokenType::END);
+  while (tok.type != TokenType::END);
 }
 
 const Token &Parser::peek() { return tokens.at(index); }
