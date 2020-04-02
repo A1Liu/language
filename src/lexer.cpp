@@ -203,6 +203,15 @@ void Lexer::next_tok_normal(Token &tok) {
     case ':':
       advance_single_token(TokenType::COLON);
       return;
+    case '*':
+      advance_single_token(TokenType::STAR);
+      return;
+    case '/':
+      advance_single_token(TokenType::DIV);
+      return;
+    case '-':
+      advance_single_token(TokenType::MINUS);
+      return;
     case '+':
       advance_single_token(TokenType::PLUS);
       return;

@@ -11,5 +11,6 @@ add_executable(language
         src/type_checking.cpp
         src/main.cpp
         src/parser.cpp
-        src/syntax_tree.cpp)
+        src/pools.cpp
+        )
 

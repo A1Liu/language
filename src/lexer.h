@@ -66,7 +66,7 @@ struct Token {
   TokenType type;
   union {
     double floating_value;
-    uint64_t integer_value;
+    int64_t integer_value;
   };
   std::string_view view;
 

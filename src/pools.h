@@ -1,9 +1,31 @@
+#pragma once
 #include <vector>
 
-#define BUCKET_SIZE 1024
+// This is a pass-by-reference/pointer datastructure.
+struct Pool {
+  char *begin;
+  char *progress;
+  char *end;
+
+  Pool() noexcept;
+  explicit Pool(uint64_t size) noexcept;
+  Pool &operator=(const Pool &) = delete;
+  Pool(Pool &other) = delete;
+  Pool(Pool &&other) = delete;
+  ~Pool() = default;
+
+  template <class Type> Type *add() noexcept {
+    return (Type *)add(sizeof(Type));
+  }
+
+  char *add(uint64_t size) noexcept;
+  char *add_extend(uint64_t size) noexcept;
+  void clear() noexcept;
+  void free() noexcept;
+};
 
 // Got idea from Jonathan Blow's video on macros and iteration.
-// This is a pass-by-reference datastructure.
+// This is a pass-by-reference/pointer datastructure.
 struct BucketArray {
   struct Bucket {
     char *begin;
@@ -18,60 +40,11 @@ struct BucketArray {
   BucketArray(BucketArray &&other) = delete;
   ~BucketArray() = default;
 
-  void free() {
-    for (auto bucket_ : buckets) {
-      delete bucket_.begin;
-    }
-    buckets.clear();
-  }
+  void free();
 
   template <class Type> Type *add() noexcept {
-    const auto typeSize = sizeof(Type);
-    if (typeSize > BUCKET_SIZE) {
-      throw 1;
-    }
-
-    if (buckets.size() == 0) {
-      char *begin = new char[BUCKET_SIZE];
-      buckets.push_back(Bucket{begin, begin});
-    }
-
-    Bucket &last_bucket = buckets.back();
-    if (BUCKET_SIZE - (last_bucket.progress - last_bucket.begin) < typeSize) {
-      char *begin = new char[BUCKET_SIZE];
-      buckets.push_back(Bucket{begin, begin});
-      last_bucket = buckets.back();
-    }
-
-    Type *retLocation = (Type *)last_bucket.progress;
-    last_bucket.progress += typeSize;
-    return retLocation;
-  }
-};
-
-// Pass by value
-struct Pool {
-  char *begin;
-  char *progress;
-  char *end;
-
-  explicit Pool(uint64_t size) noexcept {
-    progress = begin = new char[size];
-    end = begin + size;
+    return (Type *)add(sizeof(Type));
   }
 
-  template <class Type> Type *add(Type a) noexcept {
-    const auto typeSize = sizeof(Type);
-    if (typeSize > BUCKET_SIZE) {
-      throw 1;
-    }
-
-    if (end - progress < typeSize) {
-      return nullptr;
-    }
-
-    Type *retLocation = (Type *)progress;
-    progress += typeSize;
-    return retLocation;
-  }
+  char *add(uint64_t size) noexcept;
 };

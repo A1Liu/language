@@ -15,12 +15,11 @@ def hi():
 
   Program program;
   BucketArray buckets;
-  Lexer *l = new (buckets.add<Parser>()) Lexer(s);
-  Parser *p = new (buckets.add<Parser>()) Parser(*l);
+  Lexer *l = new (buckets.add<Lexer>()) Lexer(s);
+  Parser *p = new (buckets.add<Parser>()) Parser(&buckets, l);
 
   bool a = p->try_parse_program(program);
 
   if (!a)
     std::cout << "failed" << std::endl;
-  std::cout << program << std::endl;
 }

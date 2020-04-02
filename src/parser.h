@@ -1,28 +1,21 @@
 #pragma once
 #include "lexer.h"
+#include "pools.h"
 #include "syntax_tree.h"
-#include <optional>
 
 struct Parser {
-
-  std::string_view view;
   std::vector<Token> tokens;
-  std::vector<TokenType> binary_op_stack;
+  BucketArray *buckets;
+  uint64_t size = 0;
+
   int index = 0;
 
-  Parser(Lexer &lexer);
+  Parser(BucketArray *buckets, Lexer *lexer);
 
   const Token &peek();
   Token &pop();
-  int idx();
-  void reset(int idx);
 
   bool try_parse_program(Program &program);
-  bool try_parse_statement(Statement &statement);
-  bool try_parse_function(Function &func);
-  bool try_parse_return(Return &ret);
-  bool try_parse_expr(Expression &expr);
-  bool try_parse_unary_expr(Expression &expr);
-  bool try_parse_postfix_expr(Expression &expr);
-  bool try_parse_atom_expr(Expression &expr);
+  bool try_parse_statement(Stmt &statement);
+  bool try_parse_atom_expr(Expr &expr);
 };
