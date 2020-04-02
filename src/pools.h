@@ -1,4 +1,3 @@
-#include <iostream>
 #include <vector>
 
 #define BUCKET_SIZE 1024
@@ -38,7 +37,7 @@ struct BucketArray {
     }
 
     Bucket &last_bucket = buckets.back();
-    if (BUCKET_SIZE - (last_bucket.progress - last_bucket.begin) >= typeSize) {
+    if (BUCKET_SIZE - (last_bucket.progress - last_bucket.begin) < typeSize) {
       char *begin = new char[BUCKET_SIZE];
       buckets.push_back(Bucket{begin, begin});
       last_bucket = buckets.back();
@@ -67,12 +66,12 @@ struct Pool {
       throw 1;
     }
 
-    if (end - progress >= typeSize) {
-      Type *retLocation = (Type *)progress;
-      progress += typeSize;
-      return retLocation;
+    if (end - progress < typeSize) {
+      return nullptr;
     }
 
-    return nullptr;
+    Type *retLocation = (Type *)progress;
+    progress += typeSize;
+    return retLocation;
   }
 };
