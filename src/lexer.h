@@ -27,6 +27,8 @@ enum class TokenType {
   RPAREN,
   LBRACKET,
   RBRACKET,
+  EQUALS,
+  EQUALS_EQUALS,
   LESS_THAN,
   GREATER_THAN,
   LESS_EQ,

@@ -1,19 +1,25 @@
 #pragma once
-#include <ostream>
 #include <string_view>
-#include <variant>
 #include <vector>
 
-enum class ExprType { None, Int, Float, Ident };
+enum class ExprType { None, Int, Float, Ident, Add, Sub, Mul, Div, Mod };
 struct Expr {
   ExprType type;
   union {
     int64_t int_value;
     double float_value;
     std::string_view ident;
+    struct {
+      Expr *left, *right;
+    };
+    struct {
+      Expr *operand;
+    };
   };
 
+  Expr() : type(ExprType::None) {}
   Expr(ExprType _type) : type(_type) {}
+  Expr(ExprType _type, Expr *a, Expr *b) : type(_type), left(a), right(b) {}
   Expr(int64_t i) : type(ExprType::Int), int_value(i) {}
   Expr(double i) : type(ExprType::Float), float_value(i) {}
   Expr(std::string_view i) : type(ExprType::Ident), ident(i) {}
@@ -42,11 +48,14 @@ struct Expr {
   }
 };
 
-enum class StmtType { Pass, Expr };
+enum class StmtType { Pass, Expr, Assign };
 struct Stmt {
   StmtType type;
   union {
     Expr expr;
+    struct {
+      Expr assign_target, assign_value;
+    };
   };
 
   Stmt() : type(StmtType::Pass) {}
@@ -61,3 +70,7 @@ struct Stmt {
 struct Program {
   std::vector<Stmt> statements;
 };
+
+std::ostream &operator<<(std::ostream &os, const Stmt &stmt);
+std::ostream &operator<<(std::ostream &os, const Expr &expr);
+std::ostream &operator<<(std::ostream &os, const Program &program);

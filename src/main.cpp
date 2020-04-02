@@ -5,13 +5,8 @@
 
 int main() {
   std::string s = R"(
-
-def hi():
-    return 1 + 12.12
-    def hi():
-      pass
-
-  )";
+hi = 12
+)";
 
   Program program;
   BucketArray buckets;
@@ -19,7 +14,17 @@ def hi():
   Parser *p = new (buckets.add<Parser>()) Parser(&buckets, l);
 
   bool a = p->try_parse_program(program);
+  for (Token &tok : p->tokens) {
+    std::cout << "(" << tok << ") ";
+  }
+  std::cout << std::endl;
 
-  if (!a)
-    std::cout << "failed" << std::endl;
+  if (!a) {
+    std::cout << "failed with errors:" << std::endl;
+    for (auto err : p->errors) {
+      std::cout << "  at '" << err.location << "' had error: " << err.message
+                << std::endl;
+    }
+  }
+  std::cout << program << std::endl;
 }

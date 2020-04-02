@@ -164,6 +164,20 @@ void Lexer::next_tok_normal(Token &tok) {
     }
   };
 
+  auto advance_repeated_character = [&tok, this](char repeated_char) {
+    uint64_t char_count = 0;
+    for (int i = index; i < data.size() && data.at(i) == repeated_char;
+         i++, char_count++)
+      ;
+
+    tok.view = data.substr(index, char_count);
+    index += char_count;
+    if (index == data.size()) {
+      state = LexerState::END;
+    }
+    return char_count;
+  };
+
   bool found_word = false;
   while (!found_word) {
     // Ignore leading whitespace
@@ -200,11 +214,32 @@ void Lexer::next_tok_normal(Token &tok) {
         parentheses_count--;
       }
       return;
-    case ':':
-      advance_single_token(TokenType::COLON);
+    case '*': {
+      uint64_t star_count = advance_repeated_character('*');
+      if (star_count == 1) {
+        tok.type = TokenType::STAR;
+      } else if (star_count == 2) {
+        tok.type = TokenType::STAR_STAR;
+      } else {
+        tok.type = TokenType::UNKNOWN;
+      }
       return;
-    case '*':
-      advance_single_token(TokenType::STAR);
+    }
+    case '>':
+    case '<':
+    case '=': {
+      uint64_t equals_count = advance_repeated_character('=');
+      if (equals_count == 1) {
+        tok.type = TokenType::EQUALS;
+      } else if (equals_count == 2) {
+        tok.type = TokenType::EQUALS_EQUALS;
+      } else {
+        tok.type = TokenType::UNKNOWN;
+      }
+      return;
+    }
+    case '%':
+      advance_single_token(TokenType::PERCENT);
       return;
     case '/':
       advance_single_token(TokenType::DIV);
@@ -360,6 +395,8 @@ std::ostream &operator<<(std::ostream &os, const TokenType &type) {
     case_macro(RPAREN);
     case_macro(LBRACKET);
     case_macro(RBRACKET);
+    case_macro(EQUALS);
+    case_macro(EQUALS_EQUALS);
     case_macro(LESS_THAN);
     case_macro(GREATER_THAN);
     case_macro(LESS_EQ);
