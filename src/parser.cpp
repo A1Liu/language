@@ -146,7 +146,8 @@ bool Parser::try_parse_unary_expr(Expression &expr) {
 
 // @TODO Brackets
 bool Parser::try_parse_postfix_expr(Expression &expr) {
-  return try_parse_atom_expr(expr);
+  prop(try_parse_atom_expr(expr));
+  return true;
 }
 
 bool Parser::try_parse_atom_expr(Expression &expr) {

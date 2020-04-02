@@ -9,5 +9,7 @@ add_executable(language
         src/lexer.cpp
         src/parser.cpp
         src/type_checking.cpp
-        src/main.cpp src/parser.cpp src/syntax_tree.cpp)
+        src/main.cpp
+        src/parser.cpp
+        src/syntax_tree.cpp)
 

@@ -1,5 +1,6 @@
 #include "lexer.h"
 #include "parser.h"
+#include "pools.h"
 #include <iostream>
 
 int main() {
@@ -12,12 +13,12 @@ def hi():
 
   )";
 
-  Lexer l{s};
   Program program;
+  BucketArray buckets;
+  Lexer *l = new (buckets.add<Parser>()) Lexer(s);
+  Parser *p = new (buckets.add<Parser>()) Parser(*l);
 
-  Parser p{l};
-
-  bool a = p.try_parse_program(program);
+  bool a = p->try_parse_program(program);
 
   if (!a)
     std::cout << "failed" << std::endl;

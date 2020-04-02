@@ -60,6 +60,8 @@ std::ostream &operator<<(std::ostream &os, const UnaryOpType &uoptype) {
     return os << "**";
   case UnaryOpType::Negate:
     return os << '-';
+  case UnaryOpType::Index:
+    return os << "[]";
   }
 }
 

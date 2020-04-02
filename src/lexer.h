@@ -16,7 +16,6 @@ enum class TokenType {
   WHILE,
   IN,
   IS,
-  EXPLICIT,
   CLASS,
   RAISE,
   YIELD,

@@ -28,7 +28,7 @@ struct Identifier {
 };
 
 enum class BinaryOpType { Plus, Multiply, Divide, Minus, DoubleDivide, Modulo };
-enum class UnaryOpType { Splat, DoubleSplat, Negate };
+enum class UnaryOpType { Splat, DoubleSplat, Negate, Index };
 
 struct BinaryOp {
   BinaryOpType type;

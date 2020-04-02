@@ -340,7 +340,6 @@ std::ostream &operator<<(std::ostream &os, const TokenType &type) {
     case_macro(WHILE);
     case_macro(IN);
     case_macro(IS);
-    case_macro(EXPLICIT);
     case_macro(CLASS);
     case_macro(RAISE);
     case_macro(YIELD);
