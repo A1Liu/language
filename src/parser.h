@@ -10,13 +10,10 @@ struct Parser {
   };
 
   std::vector<Token> tokens;
-  BucketArray *buckets;
   std::vector<ParseError> errors;
-  uint64_t size = 0;
-
   int index = 0;
 
-  Parser(BucketArray *buckets, Lexer *lexer);
+  Parser(Lexer *lexer);
 
   const Token &peek();
   const Token &pop();
@@ -32,4 +29,6 @@ struct Parser {
 
   bool try_parse_expr(Expr &expr);
   bool try_parse_atom_expr(Expr &expr);
+
+    bool try_parse_comma_list(std::vector<Expr> &expressions);
 };

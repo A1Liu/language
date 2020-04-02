@@ -13,7 +13,7 @@
     return false;                                                              \
   }
 
-Parser::Parser(BucketArray *_buckets, Lexer *lexer) : buckets(_buckets) {
+Parser::Parser(Lexer *lexer) {
   Token tok;
   do
     tokens.push_back(tok = lexer->next());
@@ -82,8 +82,8 @@ bool Parser::try_parse_add(Expr &expr) {
 
   pop();
 
-  Expr *left = buckets->add<Expr>();
-  Expr *right = buckets->add<Expr>();
+  Expr *left = new Expr();
+  Expr *right = new Expr();
   *left = expr;
 
   prop(try_parse_mul(*right));
@@ -108,8 +108,8 @@ bool Parser::try_parse_mul(Expr &expr) {
 
   pop();
 
-  Expr *left = buckets->add<Expr>();
-  Expr *right = buckets->add<Expr>();
+  Expr *left = new Expr();
+  Expr *right = new Expr();
   *left = expr;
 
   prop(try_parse_unary_prefix(*right));
@@ -152,5 +152,6 @@ bool Parser::try_parse_atom_expr(Expr &expr) {
            // function calls
     return false;
   }
+
   return true;
 }
