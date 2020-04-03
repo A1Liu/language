@@ -2,6 +2,7 @@
 #include "lexer.h"
 #include "pools.h"
 #include "syntax_tree.h"
+#include <vector>
 
 struct Parser {
   struct ParseError {
@@ -9,11 +10,13 @@ struct Parser {
     const char *message;
   };
 
+  Pool pool;
+  BucketArray *buckets;
+  ParseError error;
   std::vector<Token> tokens;
-  std::vector<ParseError> errors;
   int index = 0;
 
-  Parser(Lexer *lexer);
+  Parser(BucketArray *buckets, Lexer *lexer);
 
   const Token &peek();
   const Token &pop();
@@ -21,6 +24,7 @@ struct Parser {
   bool try_parse_program(Program &program);
   bool try_parse_statement(Stmt &statement);
 
+  bool try_parse_compare(Expr &expr);
   bool try_parse_add(Expr &expr);
   bool try_parse_mul(Expr &expr);
 
@@ -29,6 +33,4 @@ struct Parser {
 
   bool try_parse_expr(Expr &expr);
   bool try_parse_atom_expr(Expr &expr);
-
-    bool try_parse_comma_list(std::vector<Expr> &expressions);
 };

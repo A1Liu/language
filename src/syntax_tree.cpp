@@ -25,6 +25,16 @@ std::ostream &operator<<(std::ostream &os, const Expr &expr) {
     return os << "f(" << expr.float_value << ")";
   case ExprType::Ident:
     return os << "id(" << expr.ident << ")";
+  case ExprType::Tup: {
+    os << "tup( ";
+    int i = 0;
+    for (Expr *e = expr.tup_begin; e != expr.tup_end; e++) {
+      os << *e << ",";
+    }
+    return os << " )";
+  }
+  case ExprType::Call:
+    return os << "call()";
   case ExprType::Add:
     return os << "Add( " << *expr.left << ", " << *expr.right << " )";
   case ExprType::Sub:
@@ -35,6 +45,26 @@ std::ostream &operator<<(std::ostream &os, const Expr &expr) {
     return os << "Div( " << *expr.left << ", " << *expr.right << " )";
   case ExprType::Mod:
     return os << "Mod( " << *expr.left << ", " << *expr.right << " )";
+  case ExprType::Eq:
+    return os << "Eq( " << *expr.left << ", " << *expr.right << " )";
+  case ExprType::Neq:
+    return os << "Neq( " << *expr.left << ", " << *expr.right << " )";
+  case ExprType::Leq:
+    return os << "Leq( " << *expr.left << ", " << *expr.right << " )";
+  case ExprType::Geq:
+    return os << "Geq( " << *expr.left << ", " << *expr.right << " )";
+  case ExprType::Gt:
+    return os << "Gt( " << *expr.left << ", " << *expr.right << " )";
+  case ExprType::Lt:
+    return os << "Lt( " << *expr.left << ", " << *expr.right << " )";
+  case ExprType::Deref:
+    return os << "Deref( " << *expr.operand << " )";
+  case ExprType::Range:
+    return os << "Range( " << *expr.operand << " )";
+  case ExprType::RangePrefix:
+    return os << "RangePrefix( " << *expr.operand << " )";
+  case ExprType::RangePostfix:
+    return os << "RangePostfix( " << *expr.operand << " )";
   }
   return os;
 }

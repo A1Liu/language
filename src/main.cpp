@@ -5,12 +5,12 @@
 
 int main() {
   std::string s = R"(
-hi = 12
+hi = (hello, hi)
 )";
 
   BucketArray buckets;
   Lexer l{s};
-  Parser p(&l);
+  Parser p(&buckets, &l);
   Program program;
 
   bool a = p.try_parse_program(program);
@@ -20,11 +20,10 @@ hi = 12
   std::cout << std::endl;
 
   if (!a) {
-    std::cout << "failed with errors:" << std::endl;
-    for (auto err : p.errors) {
-      std::cout << "  at '" << err.location << "' had error: " << err.message
-                << std::endl;
-    }
+    std::cout << "error" << std::endl;
+    std::cout << "at '" << p.error.location
+              << "' had error: " << p.error.message << std::endl;
   }
+
   std::cout << program << std::endl;
 }

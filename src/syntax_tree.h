@@ -2,13 +2,43 @@
 #include <string_view>
 #include <vector>
 
-enum class ExprType { None, Int, Float, Ident, Add, Sub, Mul, Div, Mod };
+enum class ExprType {
+  None,
+  Int,
+  Float,
+  Ident,
+  Tup,
+  Call,
+  Add,
+  Sub,
+  Mul,
+  Div,
+  Mod,
+  Leq,
+  Geq,
+  Lt,
+  Gt,
+  Eq,
+  Neq,
+  Deref,
+  Range,
+  RangePrefix,
+  RangePostfix
+};
+
 struct Expr {
   ExprType type;
   union {
     int64_t int_value;
     double float_value;
     std::string_view ident;
+    struct {
+      Expr *callee;
+      Expr *call_tup_begin, *call_tup_end;
+    };
+    struct {
+      Expr *tup_begin, *tup_end;
+    };
     struct {
       Expr *left, *right;
     };

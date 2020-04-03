@@ -169,8 +169,6 @@ void Lexer::next_tok_normal(Token &tok) {
     for (int i = index; i < data.size() && data.at(i) == repeated_char;
          i++, char_count++)
       ;
-
-    tok.view = data.substr(index, char_count);
     index += char_count;
     if (index == data.size()) {
       state = LexerState::END;
@@ -215,7 +213,9 @@ void Lexer::next_tok_normal(Token &tok) {
       }
       return;
     case '*': {
+      uint64_t start_index = index;
       uint64_t star_count = advance_repeated_character('*');
+      tok.view = data.substr(start_index, star_count);
       if (star_count == 1) {
         tok.type = TokenType::STAR;
       } else if (star_count == 2) {
@@ -225,10 +225,47 @@ void Lexer::next_tok_normal(Token &tok) {
       }
       return;
     }
-    case '>':
-    case '<':
-    case '=': {
+    case '!': {
+      uint64_t start_index = index++;
       uint64_t equals_count = advance_repeated_character('=');
+      tok.view = data.substr(start_index, equals_count + 1);
+      if (equals_count == 1) {
+        tok.type = TokenType::NOT_EQUAL;
+      } else {
+        tok.type = TokenType::UNKNOWN;
+      }
+      return;
+    }
+    case '<': {
+      uint64_t start_index = index++;
+      uint64_t equals_count = advance_repeated_character('=');
+      tok.view = data.substr(start_index, equals_count + 1);
+      if (equals_count == 0) {
+        tok.type = TokenType::LESS_THAN;
+      } else if (equals_count == 1) {
+        tok.type = TokenType::LESS_EQ;
+      } else {
+        tok.type = TokenType::UNKNOWN;
+      }
+      return;
+    }
+    case '>': {
+      uint64_t start_index = index++;
+      uint64_t equals_count = advance_repeated_character('=');
+      tok.view = data.substr(start_index, equals_count + 1);
+      if (equals_count == 0) {
+        tok.type = TokenType::GREATER_THAN;
+      } else if (equals_count == 1) {
+        tok.type = TokenType::GREATER_EQ;
+      } else {
+        tok.type = TokenType::UNKNOWN;
+      }
+      return;
+    }
+    case '=': {
+      uint64_t start_index = index;
+      uint64_t equals_count = advance_repeated_character('=');
+      tok.view = data.substr(start_index, equals_count);
       if (equals_count == 1) {
         tok.type = TokenType::EQUALS;
       } else if (equals_count == 2) {
@@ -238,17 +275,40 @@ void Lexer::next_tok_normal(Token &tok) {
       }
       return;
     }
+    case '/': {
+      uint64_t start_index = index;
+      uint64_t div_count = advance_repeated_character('%');
+      tok.view = data.substr(start_index, div_count);
+      if (div_count == 1) {
+        tok.type = TokenType::DIV;
+      } else if (div_count == 2) {
+        tok.type = TokenType::DIV_DIV;
+      } else {
+        tok.type = TokenType::UNKNOWN;
+      }
+      return;
+    }
+    case '-': {
+      uint64_t start_index = index;
+      uint64_t minus_count = advance_repeated_character('%');
+      tok.view = data.substr(start_index, minus_count);
+      if (minus_count == 1) {
+        tok.type = TokenType::MINUS;
+      } else if (minus_count == 3) {
+        tok.type = TokenType::TRIPLE_DASH;
+      } else {
+        tok.type = TokenType::UNKNOWN;
+      }
+      return;
+    }
     case '%':
       advance_single_token(TokenType::PERCENT);
       return;
-    case '/':
-      advance_single_token(TokenType::DIV);
-      return;
-    case '-':
-      advance_single_token(TokenType::MINUS);
-      return;
     case '+':
       advance_single_token(TokenType::PLUS);
+      return;
+    case ',':
+      advance_single_token(TokenType::COMMA);
       return;
     case '\r':
     case '\n': // Handle newlines
@@ -395,6 +455,7 @@ std::ostream &operator<<(std::ostream &os, const TokenType &type) {
     case_macro(RPAREN);
     case_macro(LBRACKET);
     case_macro(RBRACKET);
+    case_macro(NOT_EQUAL);
     case_macro(EQUALS);
     case_macro(EQUALS_EQUALS);
     case_macro(LESS_THAN);
@@ -411,6 +472,7 @@ std::ostream &operator<<(std::ostream &os, const TokenType &type) {
     case_macro(DIV_DIV);
     case_macro(PERCENT);
     case_macro(COLON);
+    case_macro(COMMA);
     case_macro(NONE);
     case_macro(NEWLINE);
     case_macro(INDENT);
@@ -421,6 +483,7 @@ std::ostream &operator<<(std::ostream &os, const TokenType &type) {
     case_macro(INTEGER);
     case_macro(FLOATING_POINT);
     case_macro(STRING);
+    case_macro(TRIPLE_DASH);
     case_macro(INT_TYPE);
     case_macro(FLOAT_TYPE);
     case_macro(STR_TYPE);
