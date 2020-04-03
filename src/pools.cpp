@@ -4,7 +4,10 @@
 #define DEFAULT_POOL_SIZE 1024
 #define POOL_GROWTH_FACTOR 1.2
 
-// TODO Fix alignment stuff
+Pool::Pool(BucketArray *buckets, uint64_t size) noexcept {
+  progress = begin = buckets->add(size);
+  end = begin + size;
+}
 
 Pool::Pool() noexcept {
   progress = begin = new char[DEFAULT_POOL_SIZE];

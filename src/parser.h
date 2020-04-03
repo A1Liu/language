@@ -10,7 +10,6 @@ struct Parser {
     const char *message;
   };
 
-  Pool pool;
   BucketArray *buckets;
   ParseError error;
   std::vector<Token> tokens;

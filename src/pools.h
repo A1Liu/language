@@ -33,6 +33,7 @@ struct Pool {
   char *end;
 
   Pool() noexcept;
+  Pool(BucketArray *buckets, uint64_t size) noexcept;
   explicit Pool(uint64_t size) noexcept;
   Pool &operator=(const Pool &) = delete;
   Pool(Pool &other) = delete;

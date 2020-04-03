@@ -13,8 +13,7 @@
     return false;                                                              \
   }
 
-Parser::Parser(BucketArray *_buckets, Lexer *lexer)
-    : pool(1024 * 1024), buckets(_buckets) {
+Parser::Parser(BucketArray *_buckets, Lexer *lexer) : buckets(_buckets) {
   Token tok;
   do
     tokens.push_back(tok = lexer->next());
@@ -167,7 +166,28 @@ bool Parser::try_parse_unary_prefix(Expr &expr) {
 }
 
 bool Parser::try_parse_unary_postfix(Expr &expr) {
-  return try_parse_atom_expr(expr); // brackets and function calls
+  prop(try_parse_atom_expr(expr)); // brackets and function calls
+
+  if (peek().type != TokenType::LPAREN) {
+    return true;
+  }
+
+  Expr *callee = buckets->add<Expr>();
+  *callee = expr;
+  Expr tup;
+  prop(try_parse_atom_expr(tup));
+
+  expr.type = ExprType::Call;
+  expr.callee = callee;
+  if (tup.type == ExprType::Tup) {
+    expr.call_tup_begin = tup.tup_begin;
+    expr.call_tup_end = tup.tup_end;
+  } else {
+    expr.call_tup_begin = buckets->add<Expr>();
+    *expr.call_tup_begin = tup;
+    expr.call_tup_end = expr.call_tup_begin + 1;
+  }
+  return true;
 }
 
 bool Parser::try_parse_atom_expr(Expr &expr) {
@@ -187,11 +207,23 @@ bool Parser::try_parse_atom_expr(Expr &expr) {
     expr = ExprType::None;
     break;
   case TokenType::LPAREN: {
+    if (peek().type == TokenType::RPAREN) {
+      pop();
+      expr.type = ExprType::Tup;
+      expr.tup_begin = expr.tup_end = nullptr;
+      break;
+    }
+
     prop(try_parse_expr(expr));
+    if (peek().type == TokenType::RPAREN) {
+      pop();
+      break;
+    }
+
     Token tok;
-    Expr tuple_expr = expr;
-    pool.clear();
-    *pool.add_extend<Expr>(buckets) = tuple_expr;
+    Expr tuple_expr;
+    Pool pool(buckets, 128);
+    *pool.add_extend<Expr>(buckets) = expr;
 
     while ((tok = pop()).type == TokenType::COMMA) {
       prop(try_parse_expr(tuple_expr));

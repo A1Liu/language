@@ -25,6 +25,14 @@ std::ostream &operator<<(std::ostream &os, const Expr &expr) {
     return os << "f(" << expr.float_value << ")";
   case ExprType::Ident:
     return os << "id(" << expr.ident << ")";
+  case ExprType::Call: {
+    os << "call<" << *expr.callee << ">( ";
+    int i = 0;
+    for (Expr *e = expr.call_tup_begin; e != expr.call_tup_end; e++) {
+      os << *e << ",";
+    }
+    return os << " )";
+  }
   case ExprType::Tup: {
     os << "tup( ";
     int i = 0;
@@ -33,8 +41,6 @@ std::ostream &operator<<(std::ostream &os, const Expr &expr) {
     }
     return os << " )";
   }
-  case ExprType::Call:
-    return os << "call()";
   case ExprType::Add:
     return os << "Add( " << *expr.left << ", " << *expr.right << " )";
   case ExprType::Sub:

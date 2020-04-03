@@ -5,7 +5,8 @@
 
 int main() {
   std::string s = R"(
-hi = (hello, hi)
+hi = bye(hello + 2, 3 *2 )
+print(hi)
 )";
 
   BucketArray buckets;
@@ -27,5 +28,4 @@ hi = (hello, hi)
 
   std::cout << program << std::endl;
   buckets.free();
-  p.pool.free();
 }
