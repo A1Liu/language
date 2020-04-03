@@ -1,5 +1,4 @@
 #include "parser.h"
-#include <iostream>
 
 // Propogate
 #define prop(expr)                                                             \
@@ -191,13 +190,11 @@ bool Parser::try_parse_atom_expr(Expr &expr) {
     prop(try_parse_expr(expr));
     Token tok;
     Expr tuple_expr = expr;
-    std::cout << tuple_expr << std::endl;
     pool.clear();
     *pool.add_extend<Expr>(buckets) = tuple_expr;
 
     while ((tok = pop()).type == TokenType::COMMA) {
       prop(try_parse_expr(tuple_expr));
-      std::cout << tuple_expr << std::endl;
       *pool.add_extend<Expr>(buckets) = tuple_expr;
     }
 

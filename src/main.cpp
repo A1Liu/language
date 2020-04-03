@@ -26,4 +26,6 @@ hi = (hello, hi)
   }
 
   std::cout << program << std::endl;
+  buckets.free();
+  p.pool.free();
 }
