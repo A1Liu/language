@@ -29,7 +29,7 @@ enum class ExprType {
 struct Expr {
   ExprType type;
   union {
-    int64_t int_value;
+    uint64_t int_value;
     double float_value;
     std::string_view ident;
     struct {
@@ -50,32 +50,20 @@ struct Expr {
   Expr() : type(ExprType::None) {}
   Expr(ExprType _type) : type(_type) {}
   Expr(ExprType _type, Expr *a, Expr *b) : type(_type), left(a), right(b) {}
-  Expr(int64_t i) : type(ExprType::Int), int_value(i) {}
+  Expr(uint64_t i) : type(ExprType::Int), int_value(i) {}
   Expr(double i) : type(ExprType::Float), float_value(i) {}
   Expr(std::string_view i) : type(ExprType::Ident), ident(i) {}
+};
 
-  Expr &operator=(ExprType i) {
-    type = i;
-    return *this;
-  }
-
-  Expr &operator=(int64_t i) {
-    type = ExprType::Int;
-    int_value = i;
-    return *this;
-  }
-
-  Expr &operator=(double i) {
-    type = ExprType::Float;
-    float_value = i;
-    return *this;
-  }
-
-  Expr &operator=(std::string_view i) {
-    type = ExprType::Ident;
-    ident = i;
-    return *this;
-  }
+enum class TypeType { Int, Float, Func };
+struct Type {
+  TypeType type;
+  union {
+    struct {
+      Type *return_type;
+      Type *param_types_begin, *param_types_end;
+    };
+  };
 };
 
 enum class StmtType { Pass, Expr, Assign };

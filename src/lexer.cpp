@@ -52,6 +52,7 @@ struct Escaped {
 };
 
 Lexer::Lexer(const std::string &_data) : data(_data) {
+  indentation_stack.reserve(16);
   indentation_stack.push_back(0);
 }
 

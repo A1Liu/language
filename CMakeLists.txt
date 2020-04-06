@@ -8,7 +8,6 @@ include_directories(src)
 add_executable(language
         src/lexer.cpp
         src/parser.cpp
-        src/type_checking.cpp
         src/main.cpp
         src/parser.cpp
         src/pools.cpp

@@ -11,11 +11,12 @@ struct Parser {
   };
 
   BucketArray *buckets;
+  Lexer lexer;
   ParseError error;
   std::vector<Token> tokens;
   int index = 0;
 
-  Parser(BucketArray *buckets, Lexer *lexer);
+  Parser(BucketArray *buckets, const std::string &view);
 
   const Token &peek();
   const Token &pop();

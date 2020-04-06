@@ -13,10 +13,11 @@
     return false;                                                              \
   }
 
-Parser::Parser(BucketArray *_buckets, Lexer *lexer) : buckets(_buckets) {
+Parser::Parser(BucketArray *_buckets, const std::string &data)
+    : lexer(data), buckets(_buckets) {
   Token tok;
   do
-    tokens.push_back(tok = lexer->next());
+    tokens.push_back(tok = lexer.next());
   while (tok.type != TokenType::END);
 }
 
@@ -195,13 +196,16 @@ bool Parser::try_parse_atom_expr(Expr &expr) {
 
   switch (tok.type) {
   case TokenType::IDENT:
-    expr = tok.view;
+    expr.type = ExprType::Ident;
+    expr.ident = tok.view;
     break;
   case TokenType::INTEGER:
-    expr = tok.integer_value;
+    expr.type = ExprType::Int;
+    expr.int_value = tok.integer_value;
     break;
   case TokenType::FLOATING_POINT:
-    expr = tok.floating_value;
+    expr.type = ExprType::Float;
+    expr.float_value = tok.floating_value;
     break;
   case TokenType::NONE:
     expr = ExprType::None;
@@ -238,8 +242,7 @@ bool Parser::try_parse_atom_expr(Expr &expr) {
     expr.tup_end = (Expr *)block.progress;
     break;
   }
-  default: // @TODO dictionary/list literals, slice literals, accessors,
-           // function calls
+  default: // @TODO dictionary/list literals, slice literals, accessors
     prop_err(false, tok.view,
              "unrecognized token while trying to parse expression");
     return false;

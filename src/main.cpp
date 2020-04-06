@@ -10,8 +10,7 @@ print(hi)
 )";
 
   BucketArray buckets;
-  Lexer l{s};
-  Parser p(&buckets, &l);
+  Parser p(&buckets, s);
   Program program;
 
   bool a = p.try_parse_program(program);

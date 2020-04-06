@@ -3,6 +3,7 @@
 #include <ostream>
 #include <stdbool.h>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 enum class TokenType {
@@ -71,7 +72,8 @@ struct Token {
   TokenType type;
   union {
     double floating_value;
-    int64_t integer_value;
+    uint64_t integer_value;
+    uint64_t symbol_table_value;
   };
   std::string_view view;
 
@@ -83,7 +85,8 @@ struct Token {
 struct Lexer {
 
   std::string_view data;
-  std::vector<int> indentation_stack;
+  std::vector<uint32_t> indentation_stack;
+  std::unordered_map<std::string_view, uint32_t> symbol_table;
   uint32_t index = 0;
   uint16_t indentation_level = 0;
   uint8_t parentheses_count = 0;
