@@ -10,7 +10,7 @@ add_executable(language
         src/parser.cpp
         src/main.cpp
         src/parser.cpp
-        src/pools.cpp
+        src/util.cpp
         src/syntax_tree.cpp
         )
 

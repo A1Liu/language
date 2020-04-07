@@ -1,5 +1,27 @@
 #pragma once
 #include <vector>
+#include <cstdint>
+#include <cstring>
+#include <ostream>
+
+struct String {
+    const char *begin, *end;
+
+    String() = default;
+    String(const char *s);
+    String(const char *_begin, const char *_end) : begin(_begin), end(_end) {}
+    String(const char *_begin, uint64_t _len)
+            : begin(_begin), end(_begin + _len) {}
+
+    uint64_t size();
+    const char &at(uint64_t idx);
+    String substr(uint64_t start, uint64_t char_count);
+};
+
+std::ostream &operator<<(std::ostream &os, const String &);
+bool operator==(const String &, const String &);
+bool operator==(const char *, const String &);
+bool operator==(const String &, const char *);
 
 // Got idea from Jonathan Blow's video on macros and iteration.
 // This is a pass-by-reference/pointer datastructure.

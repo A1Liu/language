@@ -1,10 +1,10 @@
 #include "lexer.h"
 #include "parser.h"
-#include "pools.h"
+#include "util.h"
 #include <iostream>
 
 int main() {
-  std::string s = R"(
+  const char *s = R"(
 hi = bye(hello + 2, 3 *2 )
 print(hi)
 )";

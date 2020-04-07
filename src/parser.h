@@ -1,6 +1,6 @@
 #pragma once
 #include "lexer.h"
-#include "pools.h"
+#include "util.h"
 #include "syntax_tree.h"
 #include <vector>
 
@@ -16,7 +16,7 @@ struct Parser {
   std::vector<Token> tokens;
   int index = 0;
 
-  Parser(BucketArray *buckets, const std::string &view);
+  Parser(BucketArray *buckets, const char *view);
 
   const Token &peek();
   const Token &pop();

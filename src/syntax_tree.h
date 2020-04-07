@@ -1,6 +1,5 @@
 #pragma once
-#include "lexer.h"
-#include <string_view>
+#include "util.h"
 #include <vector>
 
 enum class ExprType {
@@ -53,7 +52,6 @@ struct Expr {
   Expr(ExprType _type, Expr *a, Expr *b) : type(_type), left(a), right(b) {}
   Expr(uint64_t i) : type(ExprType::Int), int_value(i) {}
   Expr(double i) : type(ExprType::Float), float_value(i) {}
-  Expr(std::string_view i) : type(ExprType::Ident), ident(i) {}
 };
 
 enum class TypeType { Int, Float, Func };

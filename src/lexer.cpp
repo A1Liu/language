@@ -51,7 +51,7 @@ struct Escaped {
   }
 };
 
-Lexer::Lexer(const std::string &_data) : data(_data) {
+Lexer::Lexer(const char *_data) : data(_data) {
   indentation_stack.reserve(16);
   indentation_stack.push_back(0);
 }
@@ -88,7 +88,7 @@ void Lexer::next_tok_indent(Token &tok) {
     case '\\':
       index++;
       if (!handle_newline(tok)) {
-        tok.view = std::string_view(&data.at(index), 2);
+        tok.view = String{&data.at(index), 2};
         return;
       }
       begin = index;
@@ -186,7 +186,7 @@ void Lexer::next_tok_normal(Token &tok) {
         index++;
         handle_newline(tok);
         if (tok.type == TokenType::UNKNOWN) {
-          tok.view = std::string_view(c, 2);
+          tok.view = String{c, 2};
           return;
         }
       } else if (*c == ' ' || *c == '\t')
@@ -342,11 +342,11 @@ void Lexer::next_tok_normal(Token &tok) {
     }
   }
 
-  int begin = index, i;
+  uint64_t begin = index, i;
   for (i = 0; index < data.size() && isalnum(data.at(index)); i++, index++)
     ;
 
-  auto running_string = tok.view = std::string_view(&data.at(begin), i);
+  auto running_string = tok.view = String{&data.at(begin), i};
 
   if (running_string == "def") {
     tok.type = TokenType::DEF;
@@ -385,7 +385,7 @@ bool Lexer::handle_newline(Token &tok) {
 
 void Lexer::handle_numeric(Token &tok) {
   char *begin = const_cast<char *>(&data.at(index));
-  int len = 1;
+  uint64_t len = 1;
   for (index += 1; data.at(index) >= '0' && data.at(index) <= '9';
        index++, len++)
     ;
@@ -397,8 +397,7 @@ void Lexer::handle_numeric(Token &tok) {
          index++, len++)
       ;
   }
-  tok.view =
-      std::string_view{begin, static_cast<std::string_view::size_type>(len)};
+  tok.view = String{begin, len};
 
   char *end = begin + len;
   if (found_dot) {
@@ -408,62 +407,6 @@ void Lexer::handle_numeric(Token &tok) {
     tok.type = TokenType::INTEGER;
     tok.integer_value = std::strtol(begin, &end, 10);
   }
-}
-
-String::String(const std::string_view &view) {
-  begin = view.begin();
-  end = view.end();
-}
-
-uint64_t String::size() { return end - begin; }
-
-const char &String::at(uint64_t idx) { return *(begin + idx); }
-
-String String::substr(uint64_t start, uint64_t char_count) {
-  return String{begin + start, begin + start + char_count};
-}
-
-String &String::operator=(const std::string_view &other) {
-  begin = other.begin();
-  end = other.end();
-  return *this;
-}
-
-bool operator==(const char *other, const String &view) { return view == other; }
-bool operator==(const String &view, const char *other) {
-  uint64_t len = strlen(other);
-  if (view.end - view.begin != len) {
-    return false;
-  }
-  for (uint64_t i = 0; i != len; i++) {
-    if (view.begin[i] != other[i]) {
-      return false;
-    }
-  }
-  return true;
-}
-
-bool operator==(const String &a, const String &b) {
-  if (a.end - a.begin != b.end - b.begin) {
-    return false;
-  }
-  for (uint64_t i = 0; i != a.end - a.begin; i++) {
-    if (a.begin[i] != b.begin[i]) {
-      return false;
-    }
-  }
-  return true;
-}
-
-std::string_view String::to_view() const {
-  return std::string_view(begin, end - begin);
-}
-
-std::ostream &operator<<(std::ostream &os, const String &view) {
-  for (const char *i = view.begin; i != view.end; i++) {
-    os << *i;
-  }
-  return os;
 }
 
 std::ostream &operator<<(std::ostream &os, const Token &token) {

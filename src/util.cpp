@@ -1,8 +1,55 @@
-#include "pools.h"
+#include "util.h"
 
 #define BUCKET_SIZE 1024
 #define DEFAULT_POOL_SIZE 1024
 #define POOL_GROWTH_FACTOR 1.2
+
+String::String(const char *s) : begin(s) {
+    uint64_t len = strlen(s);
+    end = begin + len;
+}
+
+uint64_t String::size() { return end - begin; }
+
+const char &String::at(uint64_t idx) { return *(begin + idx); }
+
+String String::substr(uint64_t start, uint64_t char_count) {
+    return String{begin + start, begin + start + char_count};
+}
+
+bool operator==(const char *other, const String &view) { return view == other; }
+bool operator==(const String &view, const char *other) {
+    uint64_t len = strlen(other);
+    if (view.end - view.begin != len) {
+        return false;
+    }
+    for (uint64_t i = 0; i != len; i++) {
+        if (view.begin[i] != other[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool operator==(const String &a, const String &b) {
+    if (a.end - a.begin != b.end - b.begin) {
+        return false;
+    }
+    for (uint64_t i = 0; i != a.end - a.begin; i++) {
+        if (a.begin[i] != b.begin[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+std::ostream &operator<<(std::ostream &os, const String &view) {
+    for (const char *i = view.begin; i != view.end; i++) {
+        os << *i;
+    }
+    return os;
+}
+
 
 Pool::Pool(BucketArray *buckets, uint64_t size) noexcept {
   progress = begin = buckets->add(size);

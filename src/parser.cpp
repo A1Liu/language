@@ -13,7 +13,7 @@
     return false;                                                              \
   }
 
-Parser::Parser(BucketArray *_buckets, const std::string &data)
+Parser::Parser(BucketArray *_buckets, const char *data)
     : lexer(data), buckets(_buckets) {
   Token tok;
   do
