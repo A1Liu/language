@@ -3,12 +3,12 @@
 #include <ostream>
 
 struct Escaped {
-  const std::string_view str;
+  const String str;
 
-  Escaped(const std::string_view &_str) : str(_str) {}
+  Escaped(String _str) : str(_str) {}
 
   friend inline std::ostream &operator<<(std::ostream &os, const Escaped &e) {
-    for (const char *char_p = e.str.begin(); char_p != e.str.end(); char_p++) {
+    for (const char *char_p = e.str.begin; char_p != e.str.end; char_p++) {
       switch (*char_p) {
       case '\a':
         os << "\\a";
@@ -408,6 +408,62 @@ void Lexer::handle_numeric(Token &tok) {
     tok.type = TokenType::INTEGER;
     tok.integer_value = std::strtol(begin, &end, 10);
   }
+}
+
+String::String(const std::string_view &view) {
+  begin = view.begin();
+  end = view.end();
+}
+
+uint64_t String::size() { return end - begin; }
+
+const char &String::at(uint64_t idx) { return *(begin + idx); }
+
+String String::substr(uint64_t start, uint64_t char_count) {
+  return String{begin + start, begin + start + char_count};
+}
+
+String &String::operator=(const std::string_view &other) {
+  begin = other.begin();
+  end = other.end();
+  return *this;
+}
+
+bool operator==(const char *other, const String &view) { return view == other; }
+bool operator==(const String &view, const char *other) {
+  uint64_t len = strlen(other);
+  if (view.end - view.begin != len) {
+    return false;
+  }
+  for (uint64_t i = 0; i != len; i++) {
+    if (view.begin[i] != other[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool operator==(const String &a, const String &b) {
+  if (a.end - a.begin != b.end - b.begin) {
+    return false;
+  }
+  for (uint64_t i = 0; i != a.end - a.begin; i++) {
+    if (a.begin[i] != b.begin[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+std::string_view String::to_view() const {
+  return std::string_view(begin, end - begin);
+}
+
+std::ostream &operator<<(std::ostream &os, const String &view) {
+  for (const char *i = view.begin; i != view.end; i++) {
+    os << *i;
+  }
+  return os;
 }
 
 std::ostream &operator<<(std::ostream &os, const Token &token) {

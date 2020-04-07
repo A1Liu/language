@@ -63,30 +63,47 @@ enum class TokenType {
   BOOL_TYPE
 };
 
+struct String {
+  const char *begin, *end;
+
+  String() = default;
+  String(const char *_begin, const char *_end) : begin(_begin), end(_end) {}
+  explicit String(const std::string_view &view);
+
+  uint64_t size();
+  const char &at(uint64_t idx);
+  String substr(uint64_t start, uint64_t char_count);
+  std::string_view to_view() const;
+  String &operator=(const std::string_view &);
+};
+
+bool operator==(const String &, const String &);
+bool operator==(const char *, const String &);
+bool operator==(const String &, const char *);
+
 enum LexerState { NORMAL, INDENTATION, DEDENT, END };
 
 struct Token {
-
-  friend std::ostream &operator<<(std::ostream &os, const Token &token);
 
   TokenType type;
   union {
     double floating_value;
     uint64_t integer_value;
-    uint64_t symbol_table_value;
+    struct {
+      uint8_t identifier_len;
+      char identifier[23];
+    };
+    String view;
   };
-  std::string_view view;
 
   bool operator==(const Token &rhs) const;
-
   bool operator!=(const Token &rhs) const;
 };
 
 struct Lexer {
 
-  std::string_view data;
+  String data;
   std::vector<uint32_t> indentation_stack;
-  std::unordered_map<std::string_view, uint32_t> symbol_table;
   uint32_t index = 0;
   uint16_t indentation_level = 0;
   uint8_t parentheses_count = 0;
@@ -104,4 +121,6 @@ struct Lexer {
   bool handle_newline(Token &tok);
 };
 
-std::ostream &operator<<(std::ostream &os, const TokenType &type);
+std::ostream &operator<<(std::ostream &os, const String &);
+std::ostream &operator<<(std::ostream &os, const Token &);
+std::ostream &operator<<(std::ostream &os, const TokenType &);

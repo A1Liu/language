@@ -6,7 +6,7 @@
 
 struct Parser {
   struct ParseError {
-    std::string_view location;
+    String location;
     const char *message;
   };
 

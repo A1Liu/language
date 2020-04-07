@@ -1,4 +1,5 @@
 #pragma once
+#include "lexer.h"
 #include <string_view>
 #include <vector>
 
@@ -31,7 +32,7 @@ struct Expr {
   union {
     uint64_t int_value;
     double float_value;
-    std::string_view ident;
+    String ident;
     struct {
       Expr *callee;
       Expr *call_tup_begin, *call_tup_end;
