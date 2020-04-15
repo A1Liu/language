@@ -1,4 +1,3 @@
-#include "hash.h"
 #include "lexer.h"
 #include "parser.h"
 #include "util.h"
@@ -11,11 +10,12 @@ print(hi)
 )";
 
 int main() {
+  BucketArray buckets;
 
   uint32_t data_type = 8;
   uint32_t offset = 42;
 
-  Hash h(12, data_type);
+  Hash h(&buckets, 12, data_type);
   for (uint32_t i = 0; i < 32; i++) {
     *((uint64_t *)h.insert(i, data_type)) = i + offset;
   }
@@ -33,7 +33,6 @@ int main() {
   std::cout << "success!" << std::endl;
   std::exit(0);
 
-  BucketArray buckets;
   Parser p(&buckets, s);
   Program program;
 

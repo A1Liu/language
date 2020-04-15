@@ -1,21 +1,22 @@
 #pragma once
-#include <vector>
 #include <cstdint>
 #include <cstring>
 #include <ostream>
+#include <stdint.h>
+#include <vector>
 
 struct String {
-    const char *begin, *end;
+  const char *begin, *end;
 
-    String() = default;
-    String(const char *s);
-    String(const char *_begin, const char *_end) : begin(_begin), end(_end) {}
-    String(const char *_begin, uint64_t _len)
-            : begin(_begin), end(_begin + _len) {}
+  String() = default;
+  String(const char *s);
+  String(const char *_begin, const char *_end) : begin(_begin), end(_end) {}
+  String(const char *_begin, uint64_t _len)
+      : begin(_begin), end(_begin + _len) {}
 
-    uint64_t size();
-    const char &at(uint64_t idx);
-    String substr(uint64_t start, uint64_t char_count);
+  uint64_t size();
+  const char &at(uint64_t idx);
+  String substr(uint64_t start, uint64_t char_count);
 };
 
 std::ostream &operator<<(std::ostream &os, const String &);
@@ -73,5 +74,31 @@ struct Pool {
   }
   template <class Type> Type *add_extend(BucketArray *backing_pool) noexcept {
     return (Type *)add_extend(backing_pool, sizeof(Type));
+  }
+};
+
+struct Hash {
+  uint32_t capa;
+  uint32_t size;
+  uint32_t *data;
+  BucketArray *buckets;
+
+  Hash(BucketArray *buckets, uint32_t size, uint32_t data_type);
+
+  inline void *inlineFind(uint32_t key, uint32_t data_type);
+  inline void *inlineInsert(uint32_t key, uint32_t data_type);
+  inline void *inlineRemove(uint32_t key, uint32_t data_type);
+  void *find(uint32_t key, uint32_t data_type);
+  void *insert(uint32_t key, uint32_t data_type);
+  void *remove(uint32_t key, uint32_t data_type);
+
+  template <class C> C *find(uint32_t key) {
+    return (C *)inlineFind(key, sizeof(C));
+  }
+  template <class C> C *insert(uint32_t key) {
+    return (C *)inlineInsert(key, sizeof(C));
+  }
+  template <class C> C *remove(uint32_t key) {
+    return (C *)inlineRemove(key, sizeof(C));
   }
 };
