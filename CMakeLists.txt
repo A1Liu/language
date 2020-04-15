@@ -12,5 +12,6 @@ add_executable(language
         src/parser.cpp
         src/util.cpp
         src/syntax_tree.cpp
+        src/hash.cpp
         )
 

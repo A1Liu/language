@@ -1,13 +1,23 @@
+#include "hash.h"
 #include "lexer.h"
 #include "parser.h"
 #include "util.h"
 #include <iostream>
 
-int main() {
-  const char *s = R"(
+const char *s = R"(
 hi = bye(hello + 2, 3 *2 )
 print(hi)
 )";
+
+int main() {
+
+  Hash h = hashCreate(12, 64);
+  *((uint64_t *)hashInsert(&h, 12)) = 12;
+  uint64_t *value = ((uint64_t *)hashFind(&h, 12));
+
+  std::cout << value << std::endl;
+  std::cout << *value << std::endl;
+  std::exit(0);
 
   BucketArray buckets;
   Parser p(&buckets, s);
