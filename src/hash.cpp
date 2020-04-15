@@ -7,6 +7,8 @@
 
 #define NULL_KEY 0
 #define TOMBSTONE_KEY INT_MAX
+#define transform_key(key) (key + 1)
+#define invert_transform_key(key) (key - 1)
 
 // We add 1 to each key before adding to the hash table
 // growth factor is 1/2 always, capacity is always a power of 2
@@ -62,54 +64,94 @@ static inline uint32_t pow2roundup(uint32_t x) {
   return x + 1;
 }
 
-static inline void rehash(Hash *h) {}
+static inline void hashGrow(Hash *h, uint32_t data_type) {
+  uint32_t capa2 = h->capa * 2;
+  uint32_t *data = h->data;
+  Hash h2(capa2, data_type);
+  for (int i = 0; i < capa2; i += 2) {
+    if (data[i] != NULL_KEY && data[i] != TOMBSTONE_KEY) {
+      if (data_type <= sizeof(uint32_t)) {
+        *((uint32_t *)h2.insert(invert_transform_key(data[i]), data_type)) =
+            data[i + 1];
+      } else {
+        uint32_t valueIdx = data[i + 1];
+        memcpy(h2.insert(invert_transform_key(data[i]), data_type),
+               ((char *)(&data[capa2])) + valueIdx * data_type, data_type);
+      }
+    }
+  }
+  *h = h2;
+}
 
-Hash hashCreate(uint32_t size, uint32_t data_type) {
-  Hash h;
+Hash::Hash(uint32_t size, uint32_t data_type) {
   if (size < 8) {
     size = 8;
   }
-  h.capa = pow2roundup(size);
-  h.size = 0;
-  h.data_type = data_type > sizeof(uint32_t) ? data_type : 0;
-  h.data =
-      (uint32_t *)malloc(h.capa * sizeof(Item) + h.data_type * (h.capa >> 1));
-  return h;
+
+  if (data_type < sizeof(uint32_t)) {
+    data_type = 0;
+  }
+
+  this->capa = pow2roundup(size);
+  this->size = 0;
+  this->data = (uint32_t *)malloc(this->capa * sizeof(Item) +
+                                  data_type * (this->capa >> 1));
+  uint32_t capa2 = this->capa * 2;
+  for (uint32_t i = 0; i < capa2; i += 2) {
+    this->data[i] = 0;
+  }
 }
 
-void hashFree(Hash *h) { free(h->data); }
+void Hash::free() { ::free(this->data); }
+void *Hash::find(uint32_t key, uint32_t data_type) {
+  return inlineFind(key, data_type);
+}
+void *Hash::insert(uint32_t key, uint32_t data_type) {
+  return inlineInsert(key, data_type);
+}
+void *Hash::remove(uint32_t key, uint32_t data_type) {
+  return inlineRemove(key, data_type);
+}
 
-void *hashFind(Hash *h, uint32_t key) {
-  key += 1;
-  uint32_t *data = h->data;
-  uint32_t idx = 2 * (hashword(key) & (h->capa - 1));
-  uint32_t capa2 = h->capa * 2;
+inline void *Hash::inlineFind(uint32_t key, uint32_t data_type) {
+  if (data_type <= sizeof(uint32_t)) {
+    data_type = 0;
+  }
+
+  key = transform_key(key);
+  uint32_t *data = this->data;
+  uint32_t idx = 2 * (hashword(key) & (this->capa - 1));
+  uint32_t capa2 = this->capa * 2;
 
   for (; data[idx] != NULL_KEY && data[idx] != key;
        idx += 2, idx = idx >= capa2 ? 0 : idx)
     ;
 
   if (data[idx] == NULL_KEY) {
-    return NULL;
+    return nullptr;
   }
 
   uint32_t *valueIdx = &data[idx + 1];
-  if (h->data_type == 0) {
+  if (data_type == 0) {
     return valueIdx;
   } else {
-    return ((char *)(&data[capa2])) + *valueIdx * h->data_type;
+    return ((char *)(&data[capa2])) + *valueIdx * data_type;
   }
 }
 
-void *hashInsert(Hash *h, uint32_t key) {
-  if (h->size * 2 >= h->capa) {
-    std::cerr << "rehashing" << std::endl;
-    rehash(h);
+inline void *Hash::inlineInsert(uint32_t key, uint32_t data_type) {
+  if (data_type <= sizeof(uint32_t)) {
+    data_type = 0;
   }
-  key += 1;
-  uint32_t *data = h->data;
-  uint32_t idx = 2 * (hashword(key) & (h->capa - 1));
-  uint32_t capa2 = h->capa * 2;
+
+  if (this->size * 2 >= this->capa) {
+    hashGrow(this, data_type);
+  }
+
+  key = transform_key(key);
+  uint32_t *data = this->data;
+  uint32_t idx = 2 * (hashword(key) & (this->capa - 1));
+  uint32_t capa2 = this->capa * 2;
 
   for (;
        data[idx] != NULL_KEY && data[idx] != key && data[idx] != TOMBSTONE_KEY;
@@ -118,13 +160,27 @@ void *hashInsert(Hash *h, uint32_t key) {
 
   data[idx] = key;
   uint32_t *valueIdx = &data[idx + 1];
-  if (h->data_type == 0) {
-    h->size++;
+  if (data_type == 0) {
+    this->size++;
     return valueIdx;
   } else {
-    *valueIdx = h->size++;
-    return ((char *)(&data[capa2])) + *valueIdx * h->data_type;
+    *valueIdx = this->size++;
+    return ((char *)(&data[capa2])) + *valueIdx * data_type;
   }
 }
 
-void hashDelete(Hash *h, uint32_t key) {}
+inline void *Hash::inlineRemove(uint32_t key, uint32_t data_type) {
+  uint32_t *value = ((uint32_t *)inlineFind(key, 0));
+  if (value == nullptr) {
+    return nullptr;
+  }
+
+  uint32_t *key_ptr = value - 1;
+  assert(*key_ptr == transform_key(key));
+  *key_ptr = TOMBSTONE_KEY;
+  if (data_type <= sizeof(uint32_t)) {
+    return value;
+  } else {
+    return ((char *)(&data[this->capa * 2])) + *value * data_type;
+  }
+}
