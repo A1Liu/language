@@ -65,18 +65,6 @@ Pool::Pool(BucketArray *buckets, uint64_t size) noexcept {
   end = begin + size;
 }
 
-Pool::Pool() noexcept {
-  progress = begin = new char[DEFAULT_POOL_SIZE];
-  end = begin + DEFAULT_POOL_SIZE;
-}
-Pool::Pool(uint64_t size) noexcept {
-  if (size < DEFAULT_POOL_SIZE) {
-    size = DEFAULT_POOL_SIZE;
-  }
-  progress = begin = new char[size];
-  end = begin + size;
-}
-
 char *Pool::add(uint64_t size) noexcept {
   if (size > end - progress) {
     return nullptr;
