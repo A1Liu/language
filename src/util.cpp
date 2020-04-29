@@ -103,7 +103,7 @@ BucketArray::Bucket Pool::push_to_buckets(BucketArray *buckets) noexcept {
 void Pool::clear() noexcept { progress = begin; }
 
 void Pool::free() noexcept {
-  ::free(begin);
+  delete begin;
   begin = progress = end = nullptr;
 }
 
@@ -129,15 +129,15 @@ char *BucketArray::add(uint64_t size) noexcept {
     return begin;
   }
 
-  Bucket &last_bucket = buckets.back();
-  if (BUCKET_SIZE - (last_bucket.progress - last_bucket.begin) < size) {
+  Bucket *last_bucket = &buckets.back();
+  if (BUCKET_SIZE - (last_bucket->progress - last_bucket->begin) < size) {
     char *begin = new char[BUCKET_SIZE];
     buckets.push_back(Bucket{begin, begin});
-    last_bucket = buckets.back();
+    last_bucket = &buckets.back();
   }
 
-  char *retLocation = last_bucket.progress;
-  last_bucket.progress += size;
+  char *retLocation = last_bucket->progress;
+  last_bucket->progress += size;
   return retLocation;
 }
 

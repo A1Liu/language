@@ -26,8 +26,11 @@ enum class ExprType {
   RangePostfix
 };
 
+enum class InferredType { Unknown, None, Int, Float };
+
 struct Expr {
   ExprType type;
+  InferredType inferred_type;
   union {
     uint64_t int_value;
     double float_value;
@@ -47,11 +50,15 @@ struct Expr {
     };
   };
 
-  Expr() : type(ExprType::None) {}
-  Expr(ExprType _type) : type(_type) {}
-  Expr(ExprType _type, Expr *a, Expr *b) : type(_type), left(a), right(b) {}
-  Expr(uint64_t i) : type(ExprType::Int), int_value(i) {}
-  Expr(double i) : type(ExprType::Float), float_value(i) {}
+  Expr() : type(ExprType::None), inferred_type(InferredType::Unknown) {}
+  Expr(ExprType _type) : type(_type), inferred_type(InferredType::Unknown) {}
+  Expr(ExprType _type, Expr *a, Expr *b)
+      : type(_type), inferred_type(InferredType::Unknown), left(a), right(b) {}
+  Expr(uint64_t i)
+      : type(ExprType::Int), inferred_type(InferredType::Int), int_value(i) {}
+  Expr(double i)
+      : type(ExprType::Float), inferred_type(InferredType::Float),
+        float_value(i) {}
 };
 
 enum class TypeType { Int, Float, Func };

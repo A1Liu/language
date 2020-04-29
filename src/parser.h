@@ -1,7 +1,7 @@
 #pragma once
 #include "lexer.h"
-#include "util.h"
 #include "syntax_tree.h"
+#include "util.h"
 #include <vector>
 
 struct Parser {

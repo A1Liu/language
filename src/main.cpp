@@ -5,34 +5,12 @@
 #include <iostream>
 
 const char *s = R"(
-hi = bye(hello + 2, 3 *2 )
+hi = bye(hello + 2, 3 *2, (32, (3, 2,21) , 1), 3*2, 3*2, 3*2, 3*2, 3*2, 3*2, 3*2, 3*2, 3*2, 3*2, 3*2, 3*2, 3*2 )
 print(hi)
 )";
 
 int main() {
   BucketArray buckets;
-
-  uint32_t data_type = 8;
-  uint32_t offset = 42;
-
-  Hash h(&buckets, 12, data_type);
-  for (uint32_t i = 0; i < 32; i++) {
-    *((uint64_t *)h.insert(i, data_type)) = i + offset;
-  }
-
-  for (uint32_t i = 0; i < 32; i++) {
-    uint64_t *value = ((uint64_t *)h.find(i, data_type));
-    assert(value != nullptr);
-    assert(*value == i + offset);
-  }
-
-  h.remove(1, data_type);
-  uint64_t *value = ((uint64_t *)h.find(1, data_type));
-  assert(value == nullptr);
-
-  std::cout << "success!" << std::endl;
-  std::exit(0);
-
   Parser p(&buckets, s);
   Program program;
 
