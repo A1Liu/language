@@ -71,10 +71,7 @@ struct Token {
   union {
     double floating_value;
     uint64_t integer_value;
-    struct {
-      uint8_t identifier_len;
-      char identifier[23];
-    };
+    uint32_t identifier_idx;
     String view;
   };
 
@@ -85,6 +82,8 @@ struct Token {
 struct Lexer {
 
   String data;
+  std::unordered_map<String, uint32_t> id_map;
+  std::vector<String> identifiers;
   std::vector<uint32_t> indentation_stack;
   uint32_t index = 0;
   uint16_t indentation_level = 0;

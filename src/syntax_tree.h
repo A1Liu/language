@@ -34,7 +34,7 @@ struct Expr {
   union {
     uint64_t int_value;
     double float_value;
-    String ident;
+    uint32_t ident;
     struct {
       Expr *callee;
       Expr *call_tup_begin, *call_tup_end;

@@ -358,6 +358,15 @@ void Lexer::next_tok_normal(Token &tok) {
     tok.type = TokenType::PASS;
   } else {
     tok.type = TokenType::IDENT;
+
+    String id_value = data.substr(begin, i);
+    uint32_t &id = id_map[id_value];
+    if (id == 0) {
+      id = identifiers.size();
+      identifiers.push_back(id_value);
+    }
+
+    tok.identifier_idx = id;
   }
 
   if (index == data.size()) {
@@ -411,14 +420,16 @@ void Lexer::handle_numeric(Token &tok) {
 
 std::ostream &operator<<(std::ostream &os, const Token &token) {
   os << "type: " << token.type;
-  if (token.type == TokenType::INTEGER) {
-    os << " value: " << token.integer_value;
-  } else if (token.type == TokenType::FLOATING_POINT) {
-    os << " value: " << token.floating_value;
-  } else {
-    os << " view: `" << Escaped(token.view) << '`';
+  switch (token.type) {
+  case TokenType::INTEGER:
+    return os << " value: " << token.integer_value;
+  case TokenType::FLOATING_POINT:
+    return os << " value: " << token.floating_value;
+  case TokenType::IDENT:
+    return os << " idx: " << token.identifier_idx;
+  default:
+    return os << " view: `" << Escaped(token.view) << '`';
   }
-  return os;
 }
 
 bool Token::operator==(const Token &rhs) const {

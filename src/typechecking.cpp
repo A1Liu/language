@@ -18,6 +18,11 @@
     return false;                                                              \
   }
 
+SymbolTable::SymbolTable(BucketArray *buckets)
+    : symbols(buckets, 10, sizeof(Type)) {}
+
+TypeChecker::TypeChecker(BucketArray *buckets) {}
+
 bool TypeChecker::check_program(Program *program) {
   for (Stmt &stmt : program->statements) {
     prop(check_statement(&stmt));

@@ -4,15 +4,24 @@
 #include "util.h"
 #include <vector>
 
+struct SymbolTable {
+  Hash symbols;
+  SymbolTable *parent;
+
+  SymbolTable(BucketArray *buckets);
+};
+
 struct TypeChecker {
   struct TypeCheckError {
     String location;
     const char *message;
   };
 
+  TypeChecker(BucketArray *buckets);
+
   TypeCheckError error;
   std::vector<TypeCheckError> warnings;
-  Hash symbol_table;
+  SymbolTable *sym = nullptr;
 
   bool check_program(Program *program);
   bool check_statement(Stmt *statement);

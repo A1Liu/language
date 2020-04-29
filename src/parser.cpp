@@ -197,7 +197,7 @@ bool Parser::try_parse_atom_expr(Expr &expr) {
   switch (tok.type) {
   case TokenType::IDENT:
     expr.type = ExprType::Ident;
-    expr.ident = tok.view;
+    expr.ident = tok.identifier_idx;
     break;
   case TokenType::INTEGER:
     expr.type = ExprType::Int;

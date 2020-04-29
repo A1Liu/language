@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <cstring>
+#include <functional>
 #include <ostream>
 #include <stdint.h>
 #include <vector>
@@ -23,6 +24,13 @@ std::ostream &operator<<(std::ostream &os, const String &);
 bool operator==(const String &, const String &);
 bool operator==(const char *, const String &);
 bool operator==(const String &, const char *);
+namespace std {
+template <> struct hash<String> {
+  size_t operator()(const String &s) const {
+    return hash<std::string_view>{}(std::string_view(s.begin, s.end - s.begin));
+  }
+};
+} // namespace std
 
 // Got idea from Jonathan Blow's video on macros and iteration.
 // This is a pass-by-reference/pointer datastructure.
